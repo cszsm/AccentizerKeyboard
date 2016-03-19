@@ -1,14 +1,11 @@
 package com.zscseh93.accentizerkeyboard;
 
-import android.graphics.Rect;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.CursorAnchorInfo;
-import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 
@@ -26,7 +23,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     private boolean caps = false;
 
     private CandidateView candidateView;
-    private String currentWord = "";
+//    private String currentWord = "";
 
     private static final String LOG_TAG = "keyboard";
 
@@ -66,8 +63,10 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                         .KEYCODE_ENTER));
                 break;
             case ' ':
-                inputConnection.commitText(" ", 1);
-                currentWord = "";
+                String suggestion = candidateView.getSuggestion();
+                Log.d(LOG_TAG, "_" + suggestion + "_");
+                inputConnection.deleteSurroundingText(suggestion.length(), 0);
+                inputConnection.commitText(suggestion + " ", 1);
                 break;
             default:
                 char code = (char) primaryCode;
@@ -75,11 +74,12 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                     code = Character.toUpperCase(code);
                 }
                 inputConnection.commitText(String.valueOf(code), 1);
-                currentWord += code;
+//                currentWord += code;
         }
-        candidateView.setSuggestion(currentWord);
+//        candidateView.setSuggestion(currentWord);
 
-//        Log.d(LOG_TAG, inputConnection.getTextBeforeCursor(4, 0).toString());
+//        Log.d(LOG_TAG, "onKey");
+//        Log.d(LOG_TAG, inputConnection.getTextBeforeCursor(-1, 0).toString());
     }
 
     @Override
@@ -114,8 +114,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         } catch (IOException e) {
             e.printStackTrace();
         }
-        setCandidatesViewShown(true);
 
+        setCandidatesViewShown(true);
 
         return candidateView;
     }
@@ -126,22 +126,24 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart,
                 candidatesEnd);
 
-        Log.d(LOG_TAG, "onUpdateSelection");
+        String text = getCurrentInputConnection().getExtractedText(new ExtractedTextRequest(), 0)
+                .text.toString();
+        candidateView.setSuggestion(getCurrentWord(text, newSelStart));
     }
 
-    @Override
-    public void onUpdateCursorAnchorInfo(CursorAnchorInfo cursorAnchorInfo) {
-        super.onUpdateCursorAnchorInfo(cursorAnchorInfo);
+    private String getCurrentWord(String text, int cursor) {
+        String[] words = text.split(" ");
 
-        Log.d(LOG_TAG, "onUpdateCursorAnchorInfo");
-    }
+        for (String word :
+                words) {
 
-    
+            cursor -= word.length();
+            if (cursor < 1) {
+                return word;
+            }
+            cursor--; // subtract spaces
+        }
 
-    @Override
-    public void onUpdateExtractedText(int token, ExtractedText text) {
-        super.onUpdateExtractedText(token, text);
-
-        Log.d(LOG_TAG, "onUpdateExtractedText");
+        return "";
     }
 }

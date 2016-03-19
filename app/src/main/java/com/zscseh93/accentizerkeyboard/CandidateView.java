@@ -3,15 +3,13 @@ package com.zscseh93.accentizerkeyboard;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.Paint;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import java.io.IOException;
-import java.util.Set;
 
 import accentizer.Accentizer;
 
@@ -22,11 +20,17 @@ public class CandidateView extends RelativeLayout {
 
     private String suggestion;
     private Accentizer accentizer;
+    private Button button;
+
+    private final String LOG_TAG = "keyboard_candidate";
 
     public CandidateView(Context context) throws IOException {
         super(context);
         LayoutInflater.from(context).inflate(R.layout.view_candidate, this, true);
         setBackgroundColor(Color.WHITE);
+
+        button = (Button) findViewById(R.id.btnCandidate);
+        button.setTextSize(18);
 
         initializeAccentizer(context);
     }
@@ -50,15 +54,13 @@ public class CandidateView extends RelativeLayout {
         return super.onTouchEvent(event);
     }
 
-    public void setSuggestion(String suggestion) {
-        this.suggestion = suggestion;
-        Button button = (Button) findViewById(R.id.btnCandidate);
-        button.setTextSize(18);
-        button.setText(accentizer.accentize(suggestion));
+    public void setSuggestion(String word) {
+        suggestion = accentizer.accentize(word);
+        button.setText(suggestion);
     }
 
     public String getSuggestion() {
-        return suggestion;
+        return accentizer.accentize(suggestion);
     }
 
     private void initializeAccentizer(Context context) throws IOException {
