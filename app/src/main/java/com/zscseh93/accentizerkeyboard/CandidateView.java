@@ -3,7 +3,6 @@ package com.zscseh93.accentizerkeyboard;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.widget.Button;
@@ -28,6 +27,8 @@ public class CandidateView extends RelativeLayout {
         super(context);
         LayoutInflater.from(context).inflate(R.layout.view_candidate, this, true);
         setBackgroundColor(Color.WHITE);
+
+        suggestion = "";
 
         button = (Button) findViewById(R.id.btnCandidate);
         button.setTextSize(18);

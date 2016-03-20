@@ -126,9 +126,10 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart,
                 candidatesEnd);
 
-        String text = getCurrentInputConnection().getExtractedText(new ExtractedTextRequest(), 0)
-                .text.toString();
-        candidateView.setSuggestion(getCurrentWord(text, newSelStart));
+        CharSequence text = getCurrentInputConnection().getExtractedText(new ExtractedTextRequest(), 0)
+                .text;
+
+        candidateView.setSuggestion(getCurrentWord(text.toString(), newSelStart));
     }
 
     private String getCurrentWord(String text, int cursor) {
