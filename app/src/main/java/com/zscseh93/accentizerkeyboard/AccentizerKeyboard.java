@@ -18,7 +18,9 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         .OnKeyboardActionListener {
 
     private KeyboardView keyboardView;
-    private Keyboard keyboard;
+    private Keyboard qwertzKeyboard;
+    private Keyboard symbolsKeyboard;
+    private Keyboard symbolsAltKeyboard;
 
     private HunAccentizer accentizer;
 
@@ -33,8 +35,12 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     @Override
     public View onCreateInputView() {
         keyboardView = (KeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
-        keyboard = new Keyboard(this, R.xml.keyboard);
-        keyboardView.setKeyboard(keyboard);
+
+        qwertzKeyboard = new Keyboard(this, R.xml.qwertz);
+        symbolsKeyboard = new Keyboard(this, R.xml.symbols);
+        symbolsAltKeyboard = new Keyboard(this, R.xml.symbols_alt);
+
+        keyboardView.setKeyboard(qwertzKeyboard);
         keyboardView.setOnKeyboardActionListener(this);
 
         try {
@@ -64,9 +70,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                 inputConnection.deleteSurroundingText(1, 0);
                 break;
             case Keyboard.KEYCODE_SHIFT:
-                    caps = !caps;
-                    keyboard.setShifted(caps);
-                    keyboardView.invalidateAllKeys();
+                handleShift();
                 break;
             case Keyboard.KEYCODE_DONE:
                 inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent
@@ -75,13 +79,13 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             case -7:
                 isAccentizingOn = !isAccentizingOn;
                 break;
+            case Keyboard.KEYCODE_MODE_CHANGE:
+                handleModeChange();
+                break;
             case ' ':
 //                String suggestion = candidateView.getSuggestion();
                 if (isAccentizingOn) {
-                    String suggestion = accentizer.getSuggestion(currentWord);
-                    Log.d(LOG_TAG, "_" + suggestion + "_");
-                    inputConnection.deleteSurroundingText(suggestion.length(), 0);
-                    inputConnection.commitText(suggestion, 0);
+                    accentize(inputConnection);
                 }
                 inputConnection.commitText(" ", 1);
                 break;
@@ -91,12 +95,38 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                     code = Character.toUpperCase(code);
                 }
                 inputConnection.commitText(String.valueOf(code), 1);
-//                currentWord += code;
         }
 //        candidateView.setSuggestion(currentWord);
+    }
 
-//        Log.d(LOG_TAG, "onKey");
-//        Log.d(LOG_TAG, inputConnection.getTextBeforeCursor(-1, 0).toString());
+    private void accentize(InputConnection inputConnection) {
+        String suggestion = accentizer.getSuggestion(currentWord);
+        inputConnection.deleteSurroundingText(suggestion.length(), 0);
+        inputConnection.commitText(suggestion, 0);
+    }
+
+    private void handleModeChange() {
+        Keyboard currentKeyboard = keyboardView.getKeyboard();
+
+        if (currentKeyboard == qwertzKeyboard) {
+            keyboardView.setKeyboard(symbolsKeyboard);
+        } else {
+            keyboardView.setKeyboard(qwertzKeyboard);
+        }
+    }
+
+    private void handleShift() {
+        Keyboard currentKeyboard = keyboardView.getKeyboard();
+
+        if (currentKeyboard == qwertzKeyboard) {
+            caps = !caps;
+            qwertzKeyboard.setShifted(caps);
+            keyboardView.invalidateAllKeys();
+        } else if (currentKeyboard == symbolsKeyboard) {
+            keyboardView.setKeyboard(symbolsAltKeyboard);
+        } else if (currentKeyboard == symbolsAltKeyboard) {
+            keyboardView.setKeyboard(symbolsKeyboard);
+        }
     }
 
     @Override

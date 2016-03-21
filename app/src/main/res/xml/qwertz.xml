@@ -74,7 +74,6 @@
     </Row>
 
     <Row>
-        <!-- android:keyIcon="@drawable/sym_keyboard_shift" -->
         <Key
             android:codes="-1"
             android:isModifier="true"
@@ -112,11 +111,6 @@
     </Row>
 
     <Row android:rowEdgeFlags="bottom">
-        <!--<Key-->
-        <!--android:codes="-3"-->
-        <!--android:keyEdgeFlags="left"-->
-        <!--android:keyLabel="done"-->
-        <!--android:keyWidth="15%p" />-->
         <Key
             android:id="@+id/acc"
             android:codes="-7"
