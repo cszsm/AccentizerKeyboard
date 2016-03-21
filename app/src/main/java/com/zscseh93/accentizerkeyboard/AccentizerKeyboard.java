@@ -20,10 +20,13 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     private KeyboardView keyboardView;
     private Keyboard keyboard;
 
+    private HunAccentizer accentizer;
+
     private boolean caps = false;
+    private boolean isAccentizingOn = true;
 
     private CandidateView candidateView;
-//    private String currentWord = "";
+    private String currentWord = "";
 
     private static final String LOG_TAG = "keyboard";
 
@@ -33,6 +36,13 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         keyboard = new Keyboard(this, R.xml.keyboard);
         keyboardView.setKeyboard(keyboard);
         keyboardView.setOnKeyboardActionListener(this);
+
+        try {
+            accentizer = new HunAccentizer(getResources());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return keyboardView;
     }
 
@@ -54,19 +64,26 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                 inputConnection.deleteSurroundingText(1, 0);
                 break;
             case Keyboard.KEYCODE_SHIFT:
-                caps = !caps;
-                keyboard.setShifted(caps);
-                keyboardView.invalidateAllKeys();
+                    caps = !caps;
+                    keyboard.setShifted(caps);
+                    keyboardView.invalidateAllKeys();
                 break;
             case Keyboard.KEYCODE_DONE:
                 inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent
                         .KEYCODE_ENTER));
                 break;
+            case -7:
+                isAccentizingOn = !isAccentizingOn;
+                break;
             case ' ':
-                String suggestion = candidateView.getSuggestion();
-                Log.d(LOG_TAG, "_" + suggestion + "_");
-                inputConnection.deleteSurroundingText(suggestion.length(), 0);
-                inputConnection.commitText(suggestion + " ", 1);
+//                String suggestion = candidateView.getSuggestion();
+                if (isAccentizingOn) {
+                    String suggestion = accentizer.getSuggestion(currentWord);
+                    Log.d(LOG_TAG, "_" + suggestion + "_");
+                    inputConnection.deleteSurroundingText(suggestion.length(), 0);
+                    inputConnection.commitText(suggestion, 0);
+                }
+                inputConnection.commitText(" ", 1);
                 break;
             default:
                 char code = (char) primaryCode;
@@ -107,18 +124,18 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
     }
 
-    @Override
-    public View onCreateCandidatesView() {
-        try {
-            candidateView = new CandidateView(this);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        setCandidatesViewShown(true);
-
-        return candidateView;
-    }
+//    @Override
+//    public View onCreateCandidatesView() {
+//        try {
+//            candidateView = new CandidateView(this);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        setCandidatesViewShown(true);
+//
+//        return candidateView;
+//    }
 
     @Override
     public void onUpdateSelection(int oldSelStart, int oldSelEnd, int newSelStart, int newSelEnd,
@@ -126,10 +143,12 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart,
                 candidatesEnd);
 
-        CharSequence text = getCurrentInputConnection().getExtractedText(new ExtractedTextRequest(), 0)
+        CharSequence text = getCurrentInputConnection().getExtractedText(new ExtractedTextRequest
+                (), 0)
                 .text;
 
-        candidateView.setSuggestion(getCurrentWord(text.toString(), newSelStart));
+//        candidateView.setSuggestion(getCurrentWord(text.toString(), newSelStart));
+        currentWord = getCurrentWord(text.toString(), newSelStart);
     }
 
     private String getCurrentWord(String text, int cursor) {
