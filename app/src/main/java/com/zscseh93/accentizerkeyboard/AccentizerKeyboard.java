@@ -3,13 +3,13 @@ package com.zscseh93.accentizerkeyboard;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 
 import java.io.IOException;
+
+import accentizer.Accentizer;
 
 /**
  * Created by zscse on 2016. 03. 16..
@@ -22,15 +22,22 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     private Keyboard symbolsKeyboard;
     private Keyboard symbolsAltKeyboard;
 
-    private HunAccentizer accentizer;
+//    private AccentizerCreator accentizer;
+    private Accentizer accentizer;
 
     private boolean caps = false;
     private boolean isAccentizingOn = true;
 
     private CandidateView candidateView;
     private String currentWord = "";
+    private String previousWord = "";
+
+    private int cursorPos = 0;
 
     private static final String LOG_TAG = "keyboard";
+
+    private KeyHandler keyHandler;
+    private InputConnection inputConnection;
 
     @Override
     public View onCreateInputView() {
@@ -43,11 +50,16 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         keyboardView.setKeyboard(qwertzKeyboard);
         keyboardView.setOnKeyboardActionListener(this);
 
+        AccentizerCreator accentizerCreator;
         try {
-            accentizer = new HunAccentizer(getResources());
+            accentizerCreator = new AccentizerCreator(getResources());
+            accentizer = accentizerCreator.getAccentizer();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        inputConnection = getCurrentInputConnection();
+        keyHandler = new KeyHandler(inputConnection, accentizer);
 
         return keyboardView;
     }
@@ -64,10 +76,9 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
     @Override
     public void onKey(int primaryCode, int[] keyCodes) {
-        InputConnection inputConnection = getCurrentInputConnection();
         switch (primaryCode) {
             case Keyboard.KEYCODE_DELETE:
-                inputConnection.deleteSurroundingText(1, 0);
+                keyHandler.handleDelete();
                 break;
             case Keyboard.KEYCODE_SHIFT:
                 handleShift();
@@ -83,12 +94,11 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                 handleModeChange();
                 break;
             case ' ':
+            case '\n':
 //                String suggestion = candidateView.getSuggestion();
                 if (isAccentizingOn) {
-                    accentize(inputConnection);
+                    keyHandler.handleSpace(currentWord);
                 }
-                inputConnection.commitText(" ", 1);
-                break;
             default:
                 char code = (char) primaryCode;
                 if (Character.isLetter(code) && caps) {
@@ -96,13 +106,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                 }
                 inputConnection.commitText(String.valueOf(code), 1);
         }
-//        candidateView.setSuggestion(currentWord);
-    }
-
-    private void accentize(InputConnection inputConnection) {
-        String suggestion = accentizer.getSuggestion(currentWord);
-        inputConnection.deleteSurroundingText(suggestion.length(), 0);
-        inputConnection.commitText(suggestion, 0);
+//        candidateView.setCurrentWord(currentWord);
     }
 
     private void handleModeChange() {
@@ -154,18 +158,17 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
     }
 
-//    @Override
-//    public View onCreateCandidatesView() {
-//        try {
-//            candidateView = new CandidateView(this);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        setCandidatesViewShown(true);
-//
-//        return candidateView;
-//    }
+    @Override
+    public View onCreateCandidatesView() {
+        try {
+            candidateView = new CandidateView(this, this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        setCandidatesViewShown(true);
+        return candidateView;
+    }
 
     @Override
     public void onUpdateSelection(int oldSelStart, int oldSelEnd, int newSelStart, int newSelEnd,
@@ -173,27 +176,51 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart,
                 candidatesEnd);
 
-        CharSequence text = getCurrentInputConnection().getExtractedText(new ExtractedTextRequest
-                (), 0)
-                .text;
-
-//        candidateView.setSuggestion(getCurrentWord(text.toString(), newSelStart));
-        currentWord = getCurrentWord(text.toString(), newSelStart);
+        updateCurrentWord();
+        candidateView.setCurrentWord(currentWord);
     }
 
-    private String getCurrentWord(String text, int cursor) {
-        String[] words = text.split(" ");
-
-        for (String word :
-                words) {
-
-            cursor -= word.length();
-            if (cursor < 1) {
-                return word;
-            }
-            cursor--; // subtract spaces
+    public void replaceCurrentWord(String newWord) {
+        String textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0).toString();
+        while (textBeforeCursor.length() > 0 && !textBeforeCursor.matches("\\s+")) {
+            inputConnection.deleteSurroundingText(1, 0);
+            textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0).toString();
         }
 
-        return "";
+        String textAfterCursor = inputConnection.getTextAfterCursor(1, 0).toString();
+        while (textAfterCursor.length() > 0 && !textAfterCursor.matches("\\s+")) {
+            inputConnection.deleteSurroundingText(0, 1);
+            textAfterCursor = inputConnection.getTextAfterCursor(1, 0).toString();
+        }
+
+        inputConnection.commitText(newWord, 0);
+    }
+
+    private void updateCurrentWord() {
+        int beforeLength = 1;
+        int afterLength = 1;
+
+        String textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
+        String textAfterCursor = inputConnection.getTextAfterCursor(afterLength, 0).toString();
+
+        while (textBeforeCursor.length() == beforeLength) {
+            if (!textBeforeCursor.substring(0, 1).matches("\\s+")) {
+                beforeLength++;
+                textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
+            } else {
+                textBeforeCursor = textBeforeCursor.substring(1);
+            }
+        }
+
+        while (textAfterCursor.length() == afterLength) {
+            if (!textAfterCursor.substring(textAfterCursor.length() - 1, textAfterCursor.length()).matches("\\s+")) {
+                afterLength++;
+                textAfterCursor = inputConnection.getTextAfterCursor(afterLength, 0).toString();
+            } else {
+                textAfterCursor = textAfterCursor.substring(0, textAfterCursor.length() - 1);
+            }
+        }
+
+        currentWord = textBeforeCursor + textAfterCursor;
     }
 }

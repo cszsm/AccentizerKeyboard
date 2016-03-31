@@ -9,10 +9,10 @@ import accentizer.Accentizer;
 /**
  * Created by zscse on 2016. 03. 20..
  */
-public class HunAccentizer {
+public class AccentizerCreator {
     private Accentizer accentizer;
 
-    public HunAccentizer(Resources resources) throws IOException {
+    public AccentizerCreator(Resources resources) throws IOException {
         accentizer = new Accentizer();
 
         accentizer.load('a', resources.openRawResource(R.raw.a));
@@ -22,7 +22,7 @@ public class HunAccentizer {
         accentizer.load('u', resources.openRawResource(R.raw.u));
     }
 
-    public String getSuggestion(String word) {
-        return accentizer.accentize(word);
+    public Accentizer getAccentizer() {
+        return accentizer;
     }
 }

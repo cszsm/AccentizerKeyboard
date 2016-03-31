@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.inputmethodservice.KeyboardView xmlns:android="http://schemas.android.com/apk/res/android"
+<android.inputmethodservice.KeyboardView
     android:id="@+id/keyboard"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_alignParentBottom="true"
-    android:keyPreviewLayout="@layout/preview">
+    android:background="#F5F5F5"
+    android:keyBackground="@drawable/button_background"
+    android:keyPreviewLayout="@layout/preview"
+    android:keyTextColor="#000000"
+    android:shadowRadius="0">
 
 </android.inputmethodservice.KeyboardView>
