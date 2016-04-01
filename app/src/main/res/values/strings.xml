@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">AccentizerKeyboard</string>
     <string name="accentizer_keyboard">AccentizerKeyboard</string>
+    <string name="default_text">gyümölcsvédő ágyúfűnyíró</string>
+    <string name="button_sample">Set sample</string>
+    <string name="button_clear">Clear</string>
 </resources>

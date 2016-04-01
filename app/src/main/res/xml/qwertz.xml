@@ -117,6 +117,7 @@
             android:isSticky="true"
             android:keyEdgeFlags="left"
             android:keyIcon="@drawable/icon_auto_fix"
+            android:isModifier="true"
             android:keyWidth="15%p"/>
         <Key
             android:codes="-2"
