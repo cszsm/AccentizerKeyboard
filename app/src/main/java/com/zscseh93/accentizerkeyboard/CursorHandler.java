@@ -9,6 +9,7 @@ public class CursorHandler {
     private int wordEnd = 0;
 
     public CursorHandler() {
+
     }
 
     public void setWord(int wordStart, int wordEnd) {

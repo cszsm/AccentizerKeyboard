@@ -9,6 +9,7 @@
     android:keyBackground="@drawable/button_background"
     android:keyPreviewLayout="@layout/preview"
     android:keyTextColor="#000000"
-    android:shadowRadius="0">
+    android:shadowRadius="0"
+    android:popupLayout="@layout/popup">
 
 </android.inputmethodservice.KeyboardView>
