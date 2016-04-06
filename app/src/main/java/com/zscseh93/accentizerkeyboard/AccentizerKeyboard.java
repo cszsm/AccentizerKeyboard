@@ -10,7 +10,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
-import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputMethodSubtype;
 import android.widget.Toast;
 
@@ -30,7 +29,6 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     private Keyboard symbolsKeyboard;
     private Keyboard symbolsAltKeyboard;
 
-//    private AccentizerCreator accentizer;
     private Accentizer accentizer;
 
     private boolean isCapitalized = false;
@@ -38,9 +36,6 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
     private CandidateView candidateView;
     private String currentWord = "";
-//    private String previousWord = "";
-//
-//    private int cursorPos = 0;
 
     private static final String LOG_TAG = "AccentizerKeyboard";
 
@@ -49,9 +44,6 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     private InputConnection inputConnection;
 
     private boolean wasEvent = false;
-
-
-    private InputMethodSubtype inputMethodSubtype;
 
     @Override
     public void onCreate() {
@@ -109,9 +101,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         switch (primaryCode) {
             case Keyboard.KEYCODE_DELETE:
                 inputConnection.deleteSurroundingText(1, 0);
-                keyHandler.handleDelete(currentWord);
+                keyHandler.handleDelete(getPreviousWord());
 
-                keyHandler.setDoingThings(false);
                 break;
             case Keyboard.KEYCODE_SHIFT:
                 handleShift();
@@ -135,9 +126,6 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                     keyHandler.handleSpace(currentWord);
                 }
 
-                keyHandler.setDoingThings(false);
-                Log.d(LOG_TAG, "doingThings reset");
-
                 inputConnection.commitText(String.valueOf((char) primaryCode), 0);
                 break;
             default:
@@ -146,18 +134,16 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         }
 
 
-
-
         List<Keyboard.Key> keys = qwertzKeyboard.getKeys();
         for (Keyboard.Key key :
                 keys) {
             if (key.codes[0] == -7) {
-                Log.d(LOG_TAG, "-7");
+//                Log.d(LOG_TAG, "-7");
                 if (isAccentizingOn) {
-                    Log.d(LOG_TAG, "ON");
+//                    Log.d(LOG_TAG, "ON");
                     key.label = "ON";
                 } else {
-                    Log.d(LOG_TAG, "OFF");
+//                    Log.d(LOG_TAG, "OFF");
                     key.label = "OFF";
                 }
             }
@@ -212,19 +198,15 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
         updateInputConnection();
 
-        Log.d(LOG_TAG, "doingThings checked");
-        if(keyHandler.getModifications() == 0) {
-            if(!wasEvent) {
-                keyHandler.handleCursorChange(cursorHandler.isWordChanged(newSelStart));
-            }
-            wasEvent = false;
-        } else {
-            keyHandler.decreaseModifications();
+        if (!wasEvent) {
+            keyHandler.handleCursorChange(cursorHandler.isWordChanged(newSelStart));
         }
+        wasEvent = false;
 
         updateCurrentWord(newSelStart);
+        Log.d(LOG_TAG, getPreviousWord());
 
-        if(candidateView != null) {
+        if (candidateView != null) {
             candidateView.setCurrentWord(currentWord);
         }
     }
@@ -235,7 +217,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         super.onStartInputView(info, restarting);
 
         inputConnection = getCurrentInputConnection();
-        ExtractedText extractedText = inputConnection.getExtractedText(new ExtractedTextRequest(), 0);
+        ExtractedText extractedText = inputConnection.getExtractedText(new ExtractedTextRequest()
+                , 0);
 
         if (extractedText != null) {
             updateCurrentWord(extractedText.selectionStart);
@@ -299,10 +282,17 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         int afterLength = 1;
 
         inputConnection = getCurrentInputConnection();
-        if(inputConnection == null || inputConnection.getTextBeforeCursor(beforeLength, 0) == null) {
+        if (inputConnection == null) {
             Log.d(LOG_TAG, "InputConnection is null");
-            Toast.makeText(AccentizerKeyboard.this, "TODO: EditText has changed without the keyboard.", Toast
+            Toast.makeText(AccentizerKeyboard.this, "TODO: EditText has changed without the " +
+                    "keyboard.", Toast
                     .LENGTH_SHORT).show();
+            return;
+        }
+
+
+        if (inputConnection.getTextBeforeCursor(beforeLength, 0) == null) {
+            Log.d(LOG_TAG, "getTextBeforeCursor is null");
             return;
         }
 
@@ -318,14 +308,15 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             }
         }
 
-        if(beforeLength == 1) {
+        if (beforeLength == 1) {
             cursorHandler.setWord(cursorPosition, cursorPosition);
             currentWord = "";
             return;
         }
 
         while (textAfterCursor.length() == afterLength) {
-            if (!textAfterCursor.substring(textAfterCursor.length() - 1, textAfterCursor.length()).matches("\\s+")) {
+            if (!textAfterCursor.substring(textAfterCursor.length() - 1, textAfterCursor.length()
+            ).matches("\\s+")) {
                 afterLength++;
                 textAfterCursor = inputConnection.getTextAfterCursor(afterLength, 0).toString();
             } else {
@@ -335,6 +326,25 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
         cursorHandler.setWord(cursorPosition - beforeLength + 1, cursorPosition + afterLength - 1);
         currentWord = textBeforeCursor + textAfterCursor;
+
+        Log.d(LOG_TAG, currentWord);
+    }
+
+    private String getPreviousWord() {
+
+        int beforeLength = 2;
+        String textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
+
+        while (textBeforeCursor.length() == beforeLength) {
+            if (!textBeforeCursor.substring(0, 1).matches("\\s+")) {
+                beforeLength++;
+                textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
+            } else {
+                textBeforeCursor = textBeforeCursor.substring(1);
+            }
+        }
+
+        return textBeforeCursor;
     }
 
     private void updateInputConnection() {
