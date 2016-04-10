@@ -10,7 +10,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
-import android.view.inputmethod.InputMethodSubtype;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -123,7 +122,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 //                String suggestion = candidateView.getSuggestion();
 
                 if (isAccentizingOn) {
-                    keyHandler.handleSpace(currentWord);
+                    keyHandler.handleSpace(getWordBeforeCursor());
                 }
 
                 inputConnection.commitText(String.valueOf((char) primaryCode), 0);
@@ -204,7 +203,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         wasEvent = false;
 
         updateCurrentWord(newSelStart);
-        Log.d(LOG_TAG, getPreviousWord());
+        Log.d(LOG_TAG, "previous word: " + getPreviousWord());
+        Log.d(LOG_TAG, "word before cursor: " + getWordBeforeCursor());
 
         if (candidateView != null) {
             candidateView.setCurrentWord(currentWord);
@@ -292,27 +292,29 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
 
         if (inputConnection.getTextBeforeCursor(beforeLength, 0) == null) {
+            currentWord = "";
             Log.d(LOG_TAG, "getTextBeforeCursor is null");
             return;
         }
 
-        String textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
+        String textBeforeCursor = getWordBeforeCursor();
+//        String textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
         String textAfterCursor = inputConnection.getTextAfterCursor(afterLength, 0).toString();
 
-        while (textBeforeCursor.length() == beforeLength) {
-            if (!textBeforeCursor.substring(0, 1).matches("\\s+")) {
-                beforeLength++;
-                textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
-            } else {
-                textBeforeCursor = textBeforeCursor.substring(1);
-            }
-        }
-
-        if (beforeLength == 1) {
-            cursorHandler.setWord(cursorPosition, cursorPosition);
-            currentWord = "";
-            return;
-        }
+//        while (textBeforeCursor.length() == beforeLength) {
+//            if (!textBeforeCursor.substring(0, 1).matches("\\s+")) {
+//                beforeLength++;
+//                textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
+//            } else {
+//                textBeforeCursor = textBeforeCursor.substring(1);
+//            }
+//        }
+//
+//        if (beforeLength == 1) {
+//            cursorHandler.setWord(cursorPosition, cursorPosition);
+//            currentWord = "";
+//            return;
+//        }
 
         while (textAfterCursor.length() == afterLength) {
             if (!textAfterCursor.substring(textAfterCursor.length() - 1, textAfterCursor.length()
@@ -324,21 +326,37 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             }
         }
 
-        cursorHandler.setWord(cursorPosition - beforeLength + 1, cursorPosition + afterLength - 1);
+//        cursorHandler.setWord(cursorPosition - beforeLength + 1, cursorPosition + afterLength - 1);
+        cursorHandler.setWord(cursorPosition - textBeforeCursor.length(), cursorPosition + afterLength - 1);
         currentWord = textBeforeCursor + textAfterCursor;
 
-        Log.d(LOG_TAG, currentWord);
+        Log.d(LOG_TAG, "current word: _" + currentWord + "_");
     }
 
+    // Used for deaccentizing the last word on backspace
     private String getPreviousWord() {
+        // Starting position is 2 before the cursor therefore the checking of first character is
+        // skipped, so if it is space the reading of input will continue
+        return getWordBeforePosition(2);
+    }
 
-        int beforeLength = 2;
-        String textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
+    // Used for auto-accentizing on space
+    private String getWordBeforeCursor() {
+        return getWordBeforePosition(1);
+    }
 
-        while (textBeforeCursor.length() == beforeLength) {
+    private String getWordBeforePosition(int position) {
+
+        if (inputConnection.getTextBeforeCursor(position, 0) == null) {
+            return "";
+        }
+
+        String textBeforeCursor = inputConnection.getTextBeforeCursor(position, 0).toString();
+
+        while (textBeforeCursor.length() == position) {
             if (!textBeforeCursor.substring(0, 1).matches("\\s+")) {
-                beforeLength++;
-                textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
+                position++;
+                textBeforeCursor = inputConnection.getTextBeforeCursor(position, 0).toString();
             } else {
                 textBeforeCursor = textBeforeCursor.substring(1);
             }

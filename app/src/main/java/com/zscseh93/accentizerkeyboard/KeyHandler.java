@@ -133,6 +133,15 @@ public class KeyHandler {
 
     public void handleCursorChange(boolean isWordChanged) {
         Log.d(LOG_TAG, "handleCursorChange");
+
+        // If there is no characters before the cursor, or the last character is space, the new word has to be accentized on space
+        CharSequence previousCharacter = inputConnection.getTextBeforeCursor(1, 0);
+        if(previousCharacter == null || previousCharacter.equals(" ")) {
+            state = State.WRITING;
+            Log.d(STATE_TAG, "WRITING");
+            return;
+        }
+
         switch (state) {
             case WRITING:
                 if (isWordChanged) {
