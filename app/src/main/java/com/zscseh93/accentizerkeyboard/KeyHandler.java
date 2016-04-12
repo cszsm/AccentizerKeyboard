@@ -3,6 +3,15 @@ package com.zscseh93.accentizerkeyboard;
 import android.util.Log;
 import android.view.inputmethod.InputConnection;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.MutableData;
+import com.firebase.client.Transaction;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import accentizer.Accentizer;
 
 /**
@@ -21,23 +30,36 @@ public class KeyHandler {
     private Accentizer accentizer;
     private State state;
 
+    private Firebase firebase;
+
     private final String LOG_TAG = "KeyHandler";
     private final String STATE_TAG = "KeyHandlerState";
 
-    public KeyHandler(InputConnection inputConnection, Accentizer accentizer) {
+    public KeyHandler(InputConnection inputConnection, Accentizer accentizer, Firebase firebase) {
         this.inputConnection = inputConnection;
         this.accentizer = accentizer;
 
         state = State.WRITING;
         Log.d(STATE_TAG, "WRITING");
+
+        this.firebase = firebase;
     }
 
     public void setInputConnection(InputConnection inputConnection) {
         this.inputConnection = inputConnection;
     }
 
-    public void handleDelete(String currentWord) {
+    public void handleDelete(final String currentWord) {
         Log.d(LOG_TAG, "handleDelete");
+
+        // If there is no characters before the cursor, or the last character is space, the new word has to be accentized on space
+//        CharSequence previousCharacter = inputConnection.getTextBeforeCursor(1, 0);
+//        if(previousCharacter == null || previousCharacter.equals(" ")) {
+//            state = State.WRITING;
+//            Log.d(STATE_TAG, "WRITING");
+//            return;
+//        }
+
         switch (state) {
             case WRITING:
                 Log.d(STATE_TAG, "WRITING");
@@ -45,6 +67,30 @@ public class KeyHandler {
             case ACCENTIZED:
                 state = State.BAD_SUGGESTION;
                 Log.d(STATE_TAG, "BAD_SUGGESTION");
+
+                Log.d(LOG_TAG, "_" + currentWord + "_");
+                // itt kell menteni a rossz javaslatot
+                firebase.child(currentWord).runTransaction(new Transaction.Handler() {
+                    @Override
+                    public Transaction.Result doTransaction(MutableData mutableData) {
+                        Log.d(LOG_TAG, "Transaction");
+                        if(mutableData.getValue() == null) {
+                            mutableData.setValue(1);
+                        } else {
+                            mutableData.setValue((Long) mutableData.getValue() + 1);
+                        }
+
+                        return Transaction.success(mutableData);
+                    }
+
+                    @Override
+                    public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
+                        Log.d(LOG_TAG, "TRANSACTION COMPLETE");
+                        if (firebaseError != null) {
+                            Log.d(LOG_TAG, firebaseError.getMessage());
+                        }
+                    }
+                });
 
                 inputConnection.beginBatchEdit();
                 inputConnection.deleteSurroundingText(currentWord.length(), 0);
@@ -58,7 +104,8 @@ public class KeyHandler {
                 break;
             case ACCENTIZING_OFF:
 
-                if (inputConnection.getTextBeforeCursor(1, 0).toString().matches("\\s+")) {
+                String previousCharacter = inputConnection.getTextBeforeCursor(1, 0).toString();
+                if (previousCharacter.matches("\\s+") || previousCharacter.equals("")) {
                     state = State.WRITING;
                     Log.d(STATE_TAG, "WRITING");
                 } else {

@@ -3,6 +3,7 @@ package com.zscseh93.accentizerkeyboard;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -11,6 +12,8 @@ import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.widget.Toast;
+
+import com.firebase.client.Firebase;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,6 +28,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
     private KeyboardView keyboardView;
     private Keyboard qwertzKeyboard;
+    private Keyboard qwertzGoKeyboard;
     private Keyboard symbolsKeyboard;
     private Keyboard symbolsAltKeyboard;
 
@@ -44,6 +48,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
     private boolean wasEvent = false;
 
+    private Firebase firebase;
+
     @Override
     public void onCreate() {
         Log.d(LOG_TAG, "onCreate");
@@ -59,7 +65,11 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             e.printStackTrace();
         }
 
-        keyHandler = new KeyHandler(inputConnection, accentizer);
+
+        Firebase.setAndroidContext(this);
+        firebase = new Firebase("https://glowing-torch-1852.firebaseio.com/wrong-suggestions");
+
+        keyHandler = new KeyHandler(inputConnection, accentizer, firebase);
         cursorHandler = new CursorHandler();
     }
 
@@ -70,6 +80,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         keyboardView = (KeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
 
         qwertzKeyboard = new Keyboard(this, R.xml.qwertz);
+        qwertzGoKeyboard = new Keyboard(this, R.xml.qwertz_go);
         symbolsKeyboard = new Keyboard(this, R.xml.symbols);
         symbolsAltKeyboard = new Keyboard(this, R.xml.symbols_alt);
 
@@ -117,6 +128,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             case Keyboard.KEYCODE_MODE_CHANGE:
                 handleModeChange();
                 break;
+            case -8:
+                inputConnection.performEditorAction(EditorInfo.IME_ACTION_GO);
             case ' ':
             case '\n':
 //                String suggestion = candidateView.getSuggestion();
@@ -223,6 +236,13 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         if (extractedText != null) {
             updateCurrentWord(extractedText.selectionStart);
             candidateView.setCurrentWord(currentWord);
+        }
+
+        Log.d(LOG_TAG, "ime options: " + String.valueOf(info.imeOptions));
+        if (info.imeOptions == EditorInfo.IME_ACTION_GO || info.imeOptions == EditorInfo.IME_ACTION_DONE) {
+            keyboardView.setKeyboard(qwertzGoKeyboard);
+        } else {
+            keyboardView.setKeyboard(qwertzKeyboard);
         }
     }
 
