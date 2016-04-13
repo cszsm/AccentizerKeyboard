@@ -25,8 +25,9 @@ public class CandidateView extends RelativeLayout {
 
     private final String LOG_TAG = "CandidateView";
 
-    public CandidateView(Context context, final AccentizerKeyboard accentizerKeyboard, Accentizer accentizer) throws IOException {
+    public CandidateView(Context context, final TextInputConnection inputConnection, /*final AccentizerKeyboard accentizerKeyboard,*/ Accentizer accentizer) throws IOException {
         super(context);
+        final AccentizerKeyboard accentizerKeyboard = (AccentizerKeyboard) context;
 
         LayoutInflater.from(context).inflate(R.layout.view_candidate, this, true);
 
@@ -38,29 +39,12 @@ public class CandidateView extends RelativeLayout {
             @Override
             public void onClick(View v) {
                 // TODO
-                accentizerKeyboard.replaceCurrentWord(suggestion);
+                inputConnection.replaceCurrentWord(suggestion);
             }
         });
 
         this.accentizer = accentizer;
     }
-
-//    @Override
-//    protected void onDraw(Canvas canvas) {
-//        super.onDraw(canvas);
-//
-//        canvas.drawText("telnet", 10, 10, paint);
-//    }
-
-//    @Override
-//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//    }
-
-//    @Override
-//    public boolean onTouchEvent(MotionEvent event) {
-//        return super.onTouchEvent(event);
-//    }
 
     public void setCurrentWord(String word) {
         String accentizedWord = accentizer.accentize(word);

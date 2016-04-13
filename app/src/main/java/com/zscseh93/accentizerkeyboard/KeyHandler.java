@@ -35,6 +35,8 @@ public class KeyHandler {
     private final String LOG_TAG = "KeyHandler";
     private final String STATE_TAG = "KeyHandlerState";
 
+    private boolean isSendingEnabled = false;
+
     public KeyHandler(InputConnection inputConnection, Accentizer accentizer, Firebase firebase) {
         this.inputConnection = inputConnection;
         this.accentizer = accentizer;
@@ -70,27 +72,10 @@ public class KeyHandler {
 
                 Log.d(LOG_TAG, "_" + currentWord + "_");
                 // itt kell menteni a rossz javaslatot
-                firebase.child(currentWord).runTransaction(new Transaction.Handler() {
-                    @Override
-                    public Transaction.Result doTransaction(MutableData mutableData) {
-                        Log.d(LOG_TAG, "Transaction");
-                        if(mutableData.getValue() == null) {
-                            mutableData.setValue(1);
-                        } else {
-                            mutableData.setValue((Long) mutableData.getValue() + 1);
-                        }
 
-                        return Transaction.success(mutableData);
-                    }
-
-                    @Override
-                    public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
-                        Log.d(LOG_TAG, "TRANSACTION COMPLETE");
-                        if (firebaseError != null) {
-                            Log.d(LOG_TAG, firebaseError.getMessage());
-                        }
-                    }
-                });
+                if (isSendingEnabled) {
+                    saveWord(currentWord);
+                }
 
                 inputConnection.beginBatchEdit();
                 inputConnection.deleteSurroundingText(currentWord.length(), 0);
@@ -214,5 +199,29 @@ public class KeyHandler {
                 Log.d(STATE_TAG, "ACCENTIZING_OFF");
                 break;
         }
+    }
+
+    private void saveWord(String currentWord) {
+        firebase.child(currentWord).runTransaction(new Transaction.Handler() {
+            @Override
+            public Transaction.Result doTransaction(MutableData mutableData) {
+                Log.d(LOG_TAG, "Transaction");
+                if(mutableData.getValue() == null) {
+                    mutableData.setValue(1);
+                } else {
+                    mutableData.setValue((Long) mutableData.getValue() + 1);
+                }
+
+                return Transaction.success(mutableData);
+            }
+
+            @Override
+            public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
+                Log.d(LOG_TAG, "TRANSACTION COMPLETE");
+                if (firebaseError != null) {
+                    Log.d(LOG_TAG, firebaseError.getMessage());
+                }
+            }
+        });
     }
 }
