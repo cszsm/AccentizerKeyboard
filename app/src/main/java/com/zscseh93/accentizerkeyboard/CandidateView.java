@@ -25,9 +25,8 @@ public class CandidateView extends RelativeLayout {
 
     private final String LOG_TAG = "CandidateView";
 
-    public CandidateView(Context context, final TextInputConnection inputConnection, /*final AccentizerKeyboard accentizerKeyboard,*/ Accentizer accentizer) throws IOException {
+    public CandidateView(Context context, final TextInputConnection inputConnection, Accentizer accentizer) throws IOException {
         super(context);
-        final AccentizerKeyboard accentizerKeyboard = (AccentizerKeyboard) context;
 
         LayoutInflater.from(context).inflate(R.layout.view_candidate, this, true);
 

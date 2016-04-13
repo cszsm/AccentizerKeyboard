@@ -3,7 +3,6 @@ package com.zscseh93.accentizerkeyboard;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
-import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -11,10 +10,8 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
-import android.widget.Toast;
 
 import com.firebase.client.Firebase;
-import com.firebase.client.realtime.util.StringListReader;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,13 +41,10 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     private static final String LOG_TAG = "AccentizerKeyboard";
 
     private KeyHandler keyHandler;
-    private CursorHandler cursorHandler;
     private InputConnection inputConnection;
     private TextInputConnection textInputConnection;
 
     private boolean wasEvent = false;
-
-    private Firebase firebase;
 
     @Override
     public void onCreate() {
@@ -70,10 +64,10 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
 
         Firebase.setAndroidContext(this);
-        firebase = new Firebase("https://glowing-torch-1852.firebaseio.com/wrong-suggestions");
+        Firebase firebase = new Firebase("https://glowing-torch-1852.firebaseio" +
+                ".com/wrong-suggestions");
 
         keyHandler = new KeyHandler(inputConnection, accentizer, firebase);
-        cursorHandler = new CursorHandler();
     }
 
     @Override
@@ -92,6 +86,76 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         keyboardView.setPreviewEnabled(false);
 
         return keyboardView;
+    }
+
+    @Override
+    public View onCreateCandidatesView() {
+        Log.d(LOG_TAG, "onCreateCandidatesView");
+        try {
+            candidateView = new CandidateView(this, textInputConnection, accentizer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        setCandidatesViewShown(true);
+        return candidateView;
+    }
+
+    @Override
+    public void onStartInputView(EditorInfo info, boolean restarting) {
+        Log.d(LOG_TAG, "onStartInputView");
+        super.onStartInputView(info, restarting);
+
+        inputConnection = getCurrentInputConnection();
+        textInputConnection.setInputConnection(inputConnection);
+        ExtractedText extractedText = inputConnection.getExtractedText(new ExtractedTextRequest()
+                , 0);
+
+        if (extractedText != null) {
+            textInputConnection.updateCursorPosition(extractedText.selectionStart);
+            currentWord = textInputConnection.getCurrentWord(/*cursorHandler*/);
+            candidateView.setCurrentWord(currentWord);
+        }
+
+        Log.d(LOG_TAG, "ime options: " + String.valueOf(info.imeOptions));
+        if (info.imeOptions == EditorInfo.IME_ACTION_GO || info.imeOptions == EditorInfo.IME_ACTION_DONE) {
+            keyboardView.setKeyboard(qwertzGoKeyboard);
+        } else {
+            keyboardView.setKeyboard(qwertzKeyboard);
+        }
+    }
+
+    @Override
+    public void onFinishInput() {
+        Log.d(LOG_TAG, "onFinishInput");
+        super.onFinishInput();
+        currentWord = "";
+    }
+
+    @Override
+    public void onUpdateSelection(int oldSelStart, int oldSelEnd, int newSelStart, int newSelEnd,
+                                  int candidatesStart, int candidatesEnd) {
+        Log.d(LOG_TAG, "onUpdateSelection");
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart,
+                candidatesEnd);
+
+        updateInputConnection();
+
+//        boolean b = cursorHandler.isWordChanged(newSelStart);
+        boolean isWordChanged = textInputConnection.updateCursorPosition(newSelStart);
+        currentWord = textInputConnection.getCurrentWord(/*cursorHandler*/);
+
+        if (!wasEvent) {
+            keyHandler.handleCursorChange(isWordChanged);
+        }
+        wasEvent = false;
+
+        Log.d(LOG_TAG, "previous word: " + textInputConnection.getPreviousWord());
+        Log.d(LOG_TAG, "word before cursor: " + textInputConnection.getWordBeforeCursor());
+
+        if (candidateView != null) {
+            candidateView.setCurrentWord(currentWord);
+        }
     }
 
     @Override
@@ -191,95 +255,6 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
     }
 
-    @Override
-    public View onCreateCandidatesView() {
-        Log.d(LOG_TAG, "onCreateCandidatesView");
-        try {
-            candidateView = new CandidateView(this, textInputConnection, accentizer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        setCandidatesViewShown(true);
-        return candidateView;
-    }
-
-    @Override
-    public void onUpdateSelection(int oldSelStart, int oldSelEnd, int newSelStart, int newSelEnd,
-                                  int candidatesStart, int candidatesEnd) {
-        Log.d(LOG_TAG, "onUpdateSelection");
-        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart,
-                candidatesEnd);
-
-        updateInputConnection();
-
-        if (!wasEvent) {
-            keyHandler.handleCursorChange(cursorHandler.isWordChanged(newSelStart));
-        }
-        wasEvent = false;
-
-//        updateCurrentWord(newSelStart);
-        textInputConnection.setCursorPosition(newSelStart);
-        currentWord = textInputConnection.getCurrentWord(cursorHandler);
-        Log.d(LOG_TAG, "previous word: " + textInputConnection.getPreviousWord());
-        Log.d(LOG_TAG, "word before cursor: " + textInputConnection.getWordBeforeCursor());
-
-        if (candidateView != null) {
-            candidateView.setCurrentWord(currentWord);
-        }
-    }
-
-    @Override
-    public void onStartInputView(EditorInfo info, boolean restarting) {
-        Log.d(LOG_TAG, "onStartInputView");
-        super.onStartInputView(info, restarting);
-
-        inputConnection = getCurrentInputConnection();
-        textInputConnection.setInputConnection(inputConnection);
-        ExtractedText extractedText = inputConnection.getExtractedText(new ExtractedTextRequest()
-                , 0);
-
-        if (extractedText != null) {
-//            updateCurrentWord(extractedText.selectionStart);
-            textInputConnection.setCursorPosition(extractedText.selectionStart);
-            currentWord = textInputConnection.getCurrentWord(cursorHandler);
-            candidateView.setCurrentWord(currentWord);
-        }
-
-        Log.d(LOG_TAG, "ime options: " + String.valueOf(info.imeOptions));
-        if (info.imeOptions == EditorInfo.IME_ACTION_GO || info.imeOptions == EditorInfo.IME_ACTION_DONE) {
-            keyboardView.setKeyboard(qwertzGoKeyboard);
-        } else {
-            keyboardView.setKeyboard(qwertzKeyboard);
-        }
-    }
-
-    @Override
-    public void onFinishInput() {
-        Log.d(LOG_TAG, "onFinishInput");
-        super.onFinishInput();
-        currentWord = "";
-    }
-
-//    public void replaceCurrentWord(String newWord) {
-//
-//        updateInputConnection();
-//
-//        String textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0).toString();
-//        while (textBeforeCursor.length() > 0 && !textBeforeCursor.matches("\\s+")) {
-//            inputConnection.deleteSurroundingText(1, 0);
-//            textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0).toString();
-//        }
-//
-//        String textAfterCursor = inputConnection.getTextAfterCursor(1, 0).toString();
-//        while (textAfterCursor.length() > 0 && !textAfterCursor.matches("\\s+")) {
-//            inputConnection.deleteSurroundingText(0, 1);
-//            textAfterCursor = inputConnection.getTextAfterCursor(1, 0).toString();
-//        }
-//
-//        inputConnection.commitText(newWord, 0);
-//    }
-
     private void handleModeChange() {
         Keyboard currentKeyboard = keyboardView.getKeyboard();
 
@@ -303,98 +278,6 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             keyboardView.setKeyboard(symbolsKeyboard);
         }
     }
-
-//    private void updateCurrentWord(int cursorPosition) {
-//        Log.d(LOG_TAG, "updateCurrentWord");
-//        int beforeLength = 1;
-//        int afterLength = 1;
-//
-//        inputConnection = getCurrentInputConnection();
-//        textInputConnection.setInputConnection(inputConnection);
-//        if (inputConnection == null) {
-//            Log.d(LOG_TAG, "InputConnection is null");
-//            Toast.makeText(AccentizerKeyboard.this, "TODO: EditText has changed without the " +
-//                    "keyboard.", Toast
-//                    .LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//
-//        if (inputConnection.getTextBeforeCursor(beforeLength, 0) == null) {
-//            currentWord = "";
-//            Log.d(LOG_TAG, "getTextBeforeCursor is null");
-//            return;
-//        }
-//
-////        String textBeforeCursor = getWordBeforeCursor();
-//        String textBeforeCursor = textInputConnection.getWordBeforeCursor();
-//
-////        String textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
-//        String textAfterCursor = inputConnection.getTextAfterCursor(afterLength, 0).toString();
-//
-////        while (textBeforeCursor.length() == beforeLength) {
-////            if (!textBeforeCursor.substring(0, 1).matches("\\s+")) {
-////                beforeLength++;
-////                textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
-////            } else {
-////                textBeforeCursor = textBeforeCursor.substring(1);
-////            }
-////        }
-////
-////        if (beforeLength == 1) {
-////            cursorHandler.setWord(cursorPosition, cursorPosition);
-////            currentWord = "";
-////            return;
-////        }
-//
-//        while (textAfterCursor.length() == afterLength) {
-//            if (!textAfterCursor.substring(textAfterCursor.length() - 1, textAfterCursor.length()
-//            ).matches("\\s+")) {
-//                afterLength++;
-//                textAfterCursor = inputConnection.getTextAfterCursor(afterLength, 0).toString();
-//            } else {
-//                textAfterCursor = textAfterCursor.substring(0, textAfterCursor.length() - 1);
-//            }
-//        }
-//
-////        cursorHandler.setWord(cursorPosition - beforeLength + 1, cursorPosition + afterLength - 1);
-//        cursorHandler.setWord(cursorPosition - textBeforeCursor.length(), cursorPosition + afterLength - 1);
-//        currentWord = textBeforeCursor + textAfterCursor;
-//
-//        Log.d(LOG_TAG, "current word: _" + currentWord + "_");
-//    }
-
-//    // Used for deaccentizing the last word on backspace
-//    private String getPreviousWord() {
-//        // Starting position is 2 before the cursor therefore the checking of first character is
-//        // skipped, so if it is space the reading of input will continue
-//        return textInputConnection.getWordBeforePosition(2);
-//    }
-//
-//    // Used for auto-accentizing on space
-//    private String getWordBeforeCursor() {
-//        return textInputConnection.getWordBeforePosition(1);
-//    }
-
-//    private String getWordBeforePosition(int position) {
-//
-//        if (inputConnection.getTextBeforeCursor(position, 0) == null) {
-//            return "";
-//        }
-//
-//        String textBeforeCursor = inputConnection.getTextBeforeCursor(position, 0).toString();
-//
-//        while (textBeforeCursor.length() == position) {
-//            if (!textBeforeCursor.substring(0, 1).matches("\\s+")) {
-//                position++;
-//                textBeforeCursor = inputConnection.getTextBeforeCursor(position, 0).toString();
-//            } else {
-//                textBeforeCursor = textBeforeCursor.substring(1);
-//            }
-//        }
-//
-//        return textBeforeCursor;
-//    }
 
     private void updateInputConnection() {
 
