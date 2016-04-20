@@ -37,7 +37,6 @@ public class CandidateView extends RelativeLayout {
         button.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO
                 inputConnection.replaceCurrentWord(suggestion);
             }
         });

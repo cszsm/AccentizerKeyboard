@@ -2,7 +2,6 @@ package com.zscseh93.accentizerkeyboard;
 
 import android.util.Log;
 import android.view.inputmethod.InputConnection;
-import android.widget.Toast;
 
 /**
  * Created by zscse on 2016. 04. 13..
@@ -30,12 +29,12 @@ public class TextInputConnection {
         return !(wordStartPosition <= cursorPosition && cursorPosition <= wordEndPosition);
     }
 
-    public String getCurrentWord(/*CursorHandler cursorHandler*/) {
+    // Todo: talán frissíteni kell az inputconnectiont előtte és megnézni, hogy null-e
+    public String getCurrentWord() {
         Log.d(LOG_TAG, "updateCurrentWord");
         int beforeLength = 1;
         int afterLength = 1;
 
-        // Todo: frissíteni az inputconnection előtte és megnézni, hogy null-e
 
         if (inputConnection.getTextBeforeCursor(beforeLength, 0) == null) {
             Log.d(LOG_TAG, "getTextBeforeCursor is null");
@@ -43,46 +42,18 @@ public class TextInputConnection {
         }
 
         String textBeforeCursor = getWordBeforeCursor();
-        String textAfterCursor = inputConnection.getTextAfterCursor(afterLength, 0).toString();
-
-        while (textAfterCursor.length() == afterLength) {
-            if (!textAfterCursor.substring(textAfterCursor.length() - 1, textAfterCursor.length()
-            ).matches("\\s+")) {
-                afterLength++;
-                textAfterCursor = inputConnection.getTextAfterCursor(afterLength, 0).toString();
-            } else {
-                textAfterCursor = textAfterCursor.substring(0, textAfterCursor.length() - 1);
-            }
-        }
+        String textAfterCursor = getWordAfterCursor();
 
         wordStartPosition = cursorPosition - textBeforeCursor.length();
         wordEndPosition = cursorPosition + afterLength - 1;
-//        cursorHandler.setWord(wordStartPosition, wordEndPosition);
 
         Log.d(LOG_TAG, "current word: _" + textBeforeCursor + textAfterCursor + "_");
         return textBeforeCursor + textAfterCursor;
     }
 
-    // Todo: kicserélni a függényeket
+    // Todo: talán updatelni kell az inputconnectiont
     public void replaceCurrentWord(String newWord) {
-
-        //Todo: updatelni...
-//        updateInputConnection();
-
-//        String textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0).toString();
-//        while (textBeforeCursor.length() > 0 && !textBeforeCursor.matches("\\s+")) {
-//            inputConnection.deleteSurroundingText(1, 0);
-//            textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0).toString();
-//        }
-
-        inputConnection.deleteSurroundingText(getWordBeforeCursor().length(), 0);
-
-        String textAfterCursor = inputConnection.getTextAfterCursor(1, 0).toString();
-        while (textAfterCursor.length() > 0 && !textAfterCursor.matches("\\s+")) {
-            inputConnection.deleteSurroundingText(0, 1);
-            textAfterCursor = inputConnection.getTextAfterCursor(1, 0).toString();
-        }
-
+        inputConnection.deleteSurroundingText(getWordBeforeCursor().length(), getWordAfterCursor().length());
         inputConnection.commitText(newWord, 0);
     }
 
@@ -99,7 +70,6 @@ public class TextInputConnection {
     }
 
     private String getWordBeforePosition(int beforeLength) {
-
         if (inputConnection.getTextBeforeCursor(beforeLength, 0) == null) {
             return "";
         }
@@ -116,5 +86,23 @@ public class TextInputConnection {
         }
 
         return textBeforeCursor;
+    }
+
+    private String getWordAfterCursor() {
+        int afterLength = 1;
+
+        String textAfterCursor = inputConnection.getTextAfterCursor(afterLength, 0).toString();
+
+        while (textAfterCursor.length() == afterLength) {
+            if (!textAfterCursor.substring(textAfterCursor.length() - 1, textAfterCursor.length()
+            ).matches("\\s+")) {
+                afterLength++;
+                textAfterCursor = inputConnection.getTextAfterCursor(afterLength, 0).toString();
+            } else {
+                textAfterCursor = textAfterCursor.substring(0, textAfterCursor.length() - 1);
+            }
+        }
+
+        return textAfterCursor;
     }
 }

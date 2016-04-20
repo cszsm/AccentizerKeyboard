@@ -1,6 +1,7 @@
 package com.zscseh93.accentizerkeyboard;
 
 import android.util.Log;
+import android.view.animation.Interpolator;
 import android.view.inputmethod.InputConnection;
 
 import com.firebase.client.DataSnapshot;
@@ -8,6 +9,10 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.MutableData;
 import com.firebase.client.Transaction;
+import com.zscseh93.accentizerkeyboard.rules.AccentizerRule;
+import com.zscseh93.accentizerkeyboard.rules.EmailRule;
+import com.zscseh93.accentizerkeyboard.rules.HashtagRule;
+import com.zscseh93.accentizerkeyboard.rules.URLRule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +40,8 @@ public class KeyHandler {
     private final String LOG_TAG = "KeyHandler";
     private final String STATE_TAG = "KeyHandlerState";
 
+    private List<AccentizerRule> rules;
+
     private boolean isSendingEnabled = false;
 
     public KeyHandler(InputConnection inputConnection, Accentizer accentizer, Firebase firebase) {
@@ -45,6 +52,8 @@ public class KeyHandler {
         Log.d(STATE_TAG, "WRITING");
 
         this.firebase = firebase;
+
+        initializeRules();
     }
 
     public void setInputConnection(InputConnection inputConnection) {
@@ -54,7 +63,8 @@ public class KeyHandler {
     public void handleDelete(final String currentWord) {
         Log.d(LOG_TAG, "handleDelete");
 
-        // If there is no characters before the cursor, or the last character is space, the new word has to be accentized on space
+        // If there is no characters before the cursor, or the last character is space, the new
+        // word has to be accentized on space
 //        CharSequence previousCharacter = inputConnection.getTextBeforeCursor(1, 0);
 //        if(previousCharacter == null || previousCharacter.equals(" ")) {
 //            state = State.WRITING;
@@ -105,9 +115,19 @@ public class KeyHandler {
         switch (state) {
             case WRITING:
 
+                boolean isAccentizable = true;
+                for (AccentizerRule rule :
+                        rules) {
+                    if (!rule.isAccentizable(currentWord)) {
+                        isAccentizable = false;
+                        Log.d(LOG_TAG, "_" + currentWord + "_");
+                        Log.d(LOG_TAG, "!rule");
+                    }
+                }
+
                 /* If the last word has accented characters (which means that the user has
                 modified it), it must not be accentized. */
-                if (currentWord.equals(accentizer.deaccentize(currentWord))) {
+                if (isAccentizable && currentWord.equals(accentizer.deaccentize(currentWord))) {
                     state = State.ACCENTIZED;
                     Log.d(STATE_TAG, "ACCENTIZED");
 
@@ -166,9 +186,10 @@ public class KeyHandler {
     public void handleCursorChange(boolean isWordChanged) {
         Log.d(LOG_TAG, "handleCursorChange");
 
-        // If there is no characters before the cursor, or the last character is space, the new word has to be accentized on space
+        // If there is no characters before the cursor, or the last character is space, the new
+        // word has to be accentized on space
         CharSequence previousCharacter = inputConnection.getTextBeforeCursor(1, 0);
-        if(previousCharacter == null || previousCharacter.equals(" ")) {
+        if (previousCharacter == null || previousCharacter.equals(" ")) {
             state = State.WRITING;
             Log.d(STATE_TAG, "WRITING");
             return;
@@ -206,7 +227,7 @@ public class KeyHandler {
             @Override
             public Transaction.Result doTransaction(MutableData mutableData) {
                 Log.d(LOG_TAG, "Transaction");
-                if(mutableData.getValue() == null) {
+                if (mutableData.getValue() == null) {
                     mutableData.setValue(1);
                 } else {
                     mutableData.setValue((Long) mutableData.getValue() + 1);
@@ -216,12 +237,20 @@ public class KeyHandler {
             }
 
             @Override
-            public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
+            public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot
+                    dataSnapshot) {
                 Log.d(LOG_TAG, "TRANSACTION COMPLETE");
                 if (firebaseError != null) {
                     Log.d(LOG_TAG, firebaseError.getMessage());
                 }
             }
         });
+    }
+
+    private void initializeRules() {
+        rules = new ArrayList<>();
+        rules.add(new HashtagRule());
+        rules.add(new EmailRule());
+        rules.add(new URLRule());
     }
 }
