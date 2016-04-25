@@ -56,9 +56,14 @@ public class KeyPopup extends PopupWindow implements KeyContainer {
 //        Log.d("log", String.valueOf(ints[0]) + ints[1]);
 //    }
 
-    public void updatePopup(char c) {
+    // Returns true if the selected letter has accents
+    public boolean updatePopup(char c) {
 //        setContentView(accentBoard.getAccentBoardLayout(c));
-        accentBoard.update(c);
+        if (accentBoard.isAccentizable(c)) {
+            accentBoard.update(c);
+            return true;
+        }
+        return false;
     }
 
     public float cancel() {

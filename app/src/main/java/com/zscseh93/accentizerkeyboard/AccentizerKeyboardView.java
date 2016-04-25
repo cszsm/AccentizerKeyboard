@@ -105,10 +105,13 @@ public class AccentizerKeyboardView extends KeyboardView {
 //        Log.d(LOG_TAG, String.valueOf(ints[0]));
 
 
-        popupWindow.updatePopup((char) popupKey.codes[0]);
-        popupWindow.showAtLocation(this, Gravity.NO_GRAVITY, 0, 0);
-        popupWindow.update(popupKey.x, popupKey.y, WindowManager.LayoutParams.WRAP_CONTENT, 100);
-        popupX = popupKey.x;
+        boolean hasAccents = popupWindow.updatePopup((char) popupKey.codes[0]);
+        if (hasAccents) {
+            popupWindow.showAtLocation(this, Gravity.NO_GRAVITY, 0, 0);
+            popupWindow.update(popupKey.x, popupKey.y, WindowManager.LayoutParams.WRAP_CONTENT,
+                    100);
+            popupX = popupKey.x;
+        }
 
         Log.d(LOG_TAG, "longPress");
         for (int i : popupKey.codes) {
@@ -122,22 +125,26 @@ public class AccentizerKeyboardView extends KeyboardView {
 
     @Override
     public boolean onTouchEvent(MotionEvent me) {
-        if (me.getAction() == MotionEvent.ACTION_UP) {
-//            popupWindow.dismiss();
+        switch (me.getAction()) {
+            case MotionEvent.ACTION_UP:
+                if (popupWindow.isShowing()) {
+                    float x = popupWindow.cancel();
+                    Log.d(LOG_TAG, String.valueOf(me.getX()));
+                    Log.d(LOG_TAG, String.valueOf(popupX + x));
 
-            if (popupWindow.isShowing()) {
-                float x = popupWindow.cancel();
-                Log.d(LOG_TAG, String.valueOf(me.getX()));
-                Log.d(LOG_TAG, String.valueOf(popupX + x));
-
-                Character c = popupKeyManager.handleRelease(me, popupX);
-                if (c != null) {
-                    getOnKeyboardActionListener().onKey(c, new int[]{c, -1, -1, -1, -1, -1, -1, -1,
-                            -1, -1, -1, -1});
+                    Character c = popupKeyManager.handleRelease(me, popupX);
+                    if (c != null) {
+                        getOnKeyboardActionListener().onKey(c, new int[]{c, -1, -1, -1, -1, -1,
+                                -1, -1,
+                                -1, -1, -1, -1});
+                    }
                 }
-            }
-        } else if (me.getAction() == MotionEvent.ACTION_MOVE) {
-            popupKeyManager.handleMotion(me, popupX);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (popupWindow.isShowing()) {
+                    popupKeyManager.handleMotion(me, popupX);
+                }
+                break;
         }
 
         return super.onTouchEvent(me);
