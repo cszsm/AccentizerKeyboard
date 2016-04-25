@@ -1,10 +1,7 @@
 package com.zscseh93.accentizerkeyboard.popup;
 
 import android.content.Context;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.fasterxml.jackson.databind.node.POJONode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +33,28 @@ public class HunAccentBoard extends AccentBoard {
         initU(context);
     }
 
+    @Override
+    public List<PositionedKey> getAccents() {
+        return wrapToKeyList(accents.get(state));
+    }
+
+    @Override
+    public void update(char c) {
+        state = c;
+
+        removeAllViews();
+
+        for (TextView textView :
+                accents.get(state)) {
+            addView(textView);
+        }
+    }
+
+    @Override
+    public boolean isAccentizable(char c) {
+        return accents.keySet().contains(c);
+    }
+
     private void initA(Context context) {
         accents.put('a', new ArrayList<TextView>());
         accents.get('a').add(keyCreator.create(context, "Á"));
@@ -65,71 +84,13 @@ public class HunAccentBoard extends AccentBoard {
         accents.get('u').add(keyCreator.create(context, "Ű"));
     }
 
-    @Override
-    public List<PositionedKey> getAccents() {
-//        if (accents.keySet().contains(state)) {
-            return wrapToKeyList(accents.get(state));
-//        }
-//        return null;
-    }
-
     // TODO legyen más a neve
     private List<PositionedKey> wrapToKeyList(List<TextView> list) {
         List<PositionedKey> keys = new ArrayList<>();
-        for (TextView view:
+        for (TextView view :
                 list) {
             keys.add(new PositionedKey(view.getText().charAt(0), view.getX(), view.getWidth()));
         }
         return keys;
-    }
-
-    @Override
-    public void update(char c) {
-        state = c;
-
-        removeAllViews();
-
-        for (TextView textView :
-                accents.get(state)) {
-            addView(textView);
-        }
-
-//        switch (state) {
-//            case 'a':
-//                for (TextView view :
-//                        aAccents) {
-//                    addView(view);
-//                }
-//                break;
-//            case 'e':
-//                for (TextView view :
-//                        eAccents) {
-//                    addView(view);
-//                }
-//                break;
-//            case 'i':
-//                for (TextView view :
-//                        iAccents) {
-//                    addView(view);
-//                }
-//                break;
-//            case 'o':
-//                for (TextView view :
-//                        oAccents) {
-//                    addView(view);
-//                }
-//                break;
-//            case 'u':
-//                for (TextView view :
-//                        uAccents) {
-//                    addView(view);
-//                }
-//                break;
-//        }
-    }
-
-    @Override
-    public boolean isAccentizable(char c) {
-        return accents.keySet().contains(c);
     }
 }

@@ -19,15 +19,10 @@ public class PopupKeyManager {
     public void handleMotion(MotionEvent event, int popupPosition) {
         float x = event.getX() - popupPosition;
 
-        if (keyContainer.getKeys() == null) {
-            Log.d(LOG_TAG, "ezitt null");
-            return;
-        }
-
         for (PositionedKey key :
                 keyContainer.getKeys()) {
-            Log.d(LOG_TAG, "touch: " + x + " key: " + key.getStart());
             if (key.getStart() < x && x < key.getEnd()) {
+                // TODO: értelmesen jelezni az aktuális betűt
                 Log.d(LOG_TAG, String.valueOf(key.getKey()));
             }
         }
