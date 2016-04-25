@@ -24,7 +24,7 @@ import accentizer.Accentizer;
 public class AccentizerKeyboard extends InputMethodService implements KeyboardView
         .OnKeyboardActionListener {
 
-    private KeyboardView keyboardView;
+    private AccentizerKeyboardView keyboardView;
     private Keyboard qwertzKeyboard;
     private Keyboard qwertzGoKeyboard;
     private Keyboard symbolsKeyboard;
@@ -74,7 +74,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     public View onCreateInputView() {
         Log.d(LOG_TAG, "onCreateInputView");
 
-        keyboardView = (KeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
+        keyboardView = (AccentizerKeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
 
         qwertzKeyboard = new Keyboard(this, R.xml.qwertz);
         qwertzGoKeyboard = new Keyboard(this, R.xml.qwertz_go);

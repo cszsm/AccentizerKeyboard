@@ -115,6 +115,10 @@ public class KeyHandler {
         switch (state) {
             case WRITING:
 
+                if (currentWord.length() == 0) {
+                    break;
+                }
+
                 boolean isAccentizable = true;
                 for (AccentizerRule rule :
                         rules) {

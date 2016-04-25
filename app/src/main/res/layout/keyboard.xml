@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.inputmethodservice.KeyboardView
+<com.zscseh93.accentizerkeyboard.AccentizerKeyboardView
     android:id="@+id/keyboard"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -12,4 +12,4 @@
     android:shadowRadius="0"
     android:popupLayout="@layout/popup">
 
-</android.inputmethodservice.KeyboardView>
+</com.zscseh93.accentizerkeyboard.AccentizerKeyboardView>
