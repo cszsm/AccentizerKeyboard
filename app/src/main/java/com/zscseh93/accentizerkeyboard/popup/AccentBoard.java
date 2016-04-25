@@ -9,7 +9,13 @@ import java.util.List;
 /**
  * Created by zscse on 2016. 04. 25..
  */
-public interface AccentBoard {
-    public List<TextView> getAccents(char c);
-    public LinearLayout getAccentBoardLayout(char c);
+public abstract class AccentBoard extends LinearLayout {
+
+    public AccentBoard(Context context) {
+        super(context);
+    }
+
+    public abstract List<PositionedKey> getAccents();
+//    public abstract LinearLayout getAccentBoardLayout(char c);
+    public abstract void update(char c);
 }

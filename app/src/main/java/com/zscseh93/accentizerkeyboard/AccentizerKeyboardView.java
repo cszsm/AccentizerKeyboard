@@ -8,10 +8,14 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.zscseh93.accentizerkeyboard.popup.AccentBoard;
+import com.zscseh93.accentizerkeyboard.popup.HunAccentBoard;
 import com.zscseh93.accentizerkeyboard.popup.KeyPopup;
+import com.zscseh93.accentizerkeyboard.popup.PopupKeyManager;
 
 /**
  * Created by zscse on 2016. 04. 20..
@@ -23,7 +27,9 @@ public class AccentizerKeyboardView extends KeyboardView {
     private Context context;
     private int popupX;
 
-//    private PopupWindow popupWindow;
+    private PopupKeyManager popupKeyManager;
+
+    //    private PopupWindow popupWindow;
     private KeyPopup popupWindow;
     private LinearLayout linearLayout;
 
@@ -35,17 +41,23 @@ public class AccentizerKeyboardView extends KeyboardView {
 
 //        textView.setText("káo");
 //        linearLayout.addView(textView);
-//        LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context
+// .LAYOUT_INFLATER_SERVICE);
 //        View layout = layoutInflater.inflate(R.layout.key_popup, linearLayout);
 //        popupWindow = new PopupWindow(context);
 //        popupWindow.setContentView(linearLayout);
-        popupWindow = new KeyPopup(context);
+        AccentBoard accentBoard = new HunAccentBoard(context);
+        popupWindow = new KeyPopup(context, accentBoard);
+
+        popupKeyManager = new PopupKeyManager(popupWindow);
     }
 
     @Override
     protected boolean onLongPress(Keyboard.Key popupKey) {
         linearLayout.removeAllViews();
 
+
+        // TODO ezmiez?
         switch (popupKey.codes[0]) {
             case 97:
                 TextView tvA1 = new TextView(context);
@@ -95,7 +107,7 @@ public class AccentizerKeyboardView extends KeyboardView {
 
         popupWindow.updatePopup((char) popupKey.codes[0]);
         popupWindow.showAtLocation(this, Gravity.NO_GRAVITY, 0, 0);
-        popupWindow.update(popupKey.x, popupKey.y, 100, 100);
+        popupWindow.update(popupKey.x, popupKey.y, WindowManager.LayoutParams.WRAP_CONTENT, 100);
         popupX = popupKey.x;
 
         Log.d(LOG_TAG, "longPress");
@@ -112,10 +124,22 @@ public class AccentizerKeyboardView extends KeyboardView {
     public boolean onTouchEvent(MotionEvent me) {
         if (me.getAction() == MotionEvent.ACTION_UP) {
 //            popupWindow.dismiss();
-            float x = popupWindow.cancel();
-            Log.d(LOG_TAG, String.valueOf(me.getX()));
-            Log.d(LOG_TAG, String.valueOf(popupX + x));
+
+            if (popupWindow.isShowing()) {
+                float x = popupWindow.cancel();
+                Log.d(LOG_TAG, String.valueOf(me.getX()));
+                Log.d(LOG_TAG, String.valueOf(popupX + x));
+
+                Character c = popupKeyManager.handleRelease(me, popupX);
+                if (c != null) {
+                    getOnKeyboardActionListener().onKey(c, new int[]{c, -1, -1, -1, -1, -1, -1, -1,
+                            -1, -1, -1, -1});
+                }
+            }
+        } else if (me.getAction() == MotionEvent.ACTION_MOVE) {
+            popupKeyManager.handleMotion(me, popupX);
         }
+
         return super.onTouchEvent(me);
     }
 

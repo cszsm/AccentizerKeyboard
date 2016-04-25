@@ -4,6 +4,9 @@ import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
@@ -21,14 +24,13 @@ public class KeyPopup extends PopupWindow implements KeyContainer {
 
     private AccentBoard accentBoard;
 
-    public KeyPopup(final Context context) {
+    public KeyPopup(final Context context, AccentBoard accentBoard) {
         super(context);
 
-        // TODO: maybe AccentBoard should be a LinearLayout descendant
-        accentBoard = new HunAccentBoard(context);
+        this.accentBoard = accentBoard;
 
         LinearLayout linearLayout = new LinearLayout(context);
-        setContentView(linearLayout);
+        setContentView(accentBoard);
 
 //        tv1 = new TextView(context);
 //        tv1.setText("A");
@@ -55,7 +57,8 @@ public class KeyPopup extends PopupWindow implements KeyContainer {
 //    }
 
     public void updatePopup(char c) {
-        setContentView(accentBoard.getAccentBoardLayout(c));
+//        setContentView(accentBoard.getAccentBoardLayout(c));
+        accentBoard.update(c);
     }
 
     public float cancel() {
@@ -66,6 +69,6 @@ public class KeyPopup extends PopupWindow implements KeyContainer {
 
     @Override
     public List<PositionedKey> getKeys() {
-        return null;
+        return accentBoard.getAccents();
     }
 }

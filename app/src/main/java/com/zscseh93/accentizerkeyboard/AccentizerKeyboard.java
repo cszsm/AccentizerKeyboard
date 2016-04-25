@@ -209,6 +209,11 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                 break;
             default:
                 keyHandler.handleCharacter((char) primaryCode, isCapitalized);
+//                Log.d(LOG_TAG, "prim: " + primaryCode + " hossz: " + keyCodes.length);
+//                for (int i :
+//                        keyCodes) {
+//                    Log.d(LOG_TAG, String.valueOf(i));
+//                }
                 break;
         }
 
