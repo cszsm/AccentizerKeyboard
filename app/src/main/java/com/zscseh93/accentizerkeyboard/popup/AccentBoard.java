@@ -10,6 +10,8 @@ import java.util.List;
  */
 public abstract class AccentBoard extends LinearLayout {
 
+    private boolean isCapitalized = false;
+
     public AccentBoard(Context context) {
         super(context);
     }
@@ -19,4 +21,12 @@ public abstract class AccentBoard extends LinearLayout {
     public abstract void update(char c);
 
     public abstract boolean isAccentizable(char c);
+
+    public boolean isCapitalized() {
+        return isCapitalized;
+    }
+
+    public void setCapitalized(boolean capitalized) {
+        isCapitalized = capitalized;
+    }
 }

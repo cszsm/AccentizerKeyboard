@@ -14,6 +14,7 @@ import java.util.Map;
 public class HunAccentBoard extends AccentBoard {
 
     private Map<Character, List<TextView>> accents;
+    private Map<Character, List<TextView>> capitalizedAccents;
 
     private PopupKeyCreator keyCreator;
 
@@ -25,16 +26,16 @@ public class HunAccentBoard extends AccentBoard {
 
         keyCreator = new PopupKeyCreator();
         accents = new HashMap<>();
+        capitalizedAccents = new HashMap<>();
 
-        initA(context);
-        initE(context);
-        initI(context);
-        initO(context);
-        initU(context);
+        initAccents(context);
     }
 
     @Override
     public List<PositionedKey> getAccents() {
+        if (isCapitalized()) {
+            return wrapToKeyList(capitalizedAccents.get(state));
+        }
         return wrapToKeyList(accents.get(state));
     }
 
@@ -44,44 +45,22 @@ public class HunAccentBoard extends AccentBoard {
 
         removeAllViews();
 
-        for (TextView textView :
-                accents.get(state)) {
-            addView(textView);
+        if (isCapitalized()) {
+            for (TextView textView :
+                    capitalizedAccents.get(state)) {
+                addView(textView);
+            }
+        } else {
+            for (TextView textView :
+                    accents.get(state)) {
+                addView(textView);
+            }
         }
     }
 
     @Override
     public boolean isAccentizable(char c) {
         return accents.keySet().contains(c);
-    }
-
-    private void initA(Context context) {
-        accents.put('a', new ArrayList<TextView>());
-        accents.get('a').add(keyCreator.create(context, "Á"));
-    }
-
-    private void initE(Context context) {
-        accents.put('e', new ArrayList<TextView>());
-        accents.get('e').add(keyCreator.create(context, "É"));
-    }
-
-    private void initI(Context context) {
-        accents.put('i', new ArrayList<TextView>());
-        accents.get('i').add(keyCreator.create(context, "Í"));
-    }
-
-    private void initO(Context context) {
-        accents.put('o', new ArrayList<TextView>());
-        accents.get('o').add(keyCreator.create(context, "Ó"));
-        accents.get('o').add(keyCreator.create(context, "Ö"));
-        accents.get('o').add(keyCreator.create(context, "Ő"));
-    }
-
-    private void initU(Context context) {
-        accents.put('u', new ArrayList<TextView>());
-        accents.get('u').add(keyCreator.create(context, "Ú"));
-        accents.get('u').add(keyCreator.create(context, "Ü"));
-        accents.get('u').add(keyCreator.create(context, "Ű"));
     }
 
     // TODO legyen más a neve
@@ -92,5 +71,61 @@ public class HunAccentBoard extends AccentBoard {
             keys.add(new PositionedKey(view.getText().charAt(0), view.getX(), view.getWidth()));
         }
         return keys;
+    }
+
+    private void initAccents(Context context) {
+        initA(context);
+        initE(context);
+        initI(context);
+        initO(context);
+        initU(context);
+    }
+
+    private void initA(Context context) {
+        accents.put('a', new ArrayList<TextView>());
+        accents.get('a').add(keyCreator.create(context, "á"));
+
+        capitalizedAccents.put('a', new ArrayList<TextView>());
+        capitalizedAccents.get('a').add(keyCreator.create(context, "Á"));
+    }
+
+    private void initE(Context context) {
+        accents.put('e', new ArrayList<TextView>());
+        accents.get('e').add(keyCreator.create(context, "é"));
+
+        capitalizedAccents.put('e', new ArrayList<TextView>());
+        capitalizedAccents.get('e').add(keyCreator.create(context, "É"));
+    }
+
+    private void initI(Context context) {
+        accents.put('i', new ArrayList<TextView>());
+        accents.get('i').add(keyCreator.create(context, "í"));
+
+        capitalizedAccents.put('i', new ArrayList<TextView>());
+        capitalizedAccents.get('i').add(keyCreator.create(context, "Í"));
+    }
+
+    private void initO(Context context) {
+        accents.put('o', new ArrayList<TextView>());
+        accents.get('o').add(keyCreator.create(context, "ó"));
+        accents.get('o').add(keyCreator.create(context, "ö"));
+        accents.get('o').add(keyCreator.create(context, "ő"));
+
+        capitalizedAccents.put('o', new ArrayList<TextView>());
+        capitalizedAccents.get('o').add(keyCreator.create(context, "Ó"));
+        capitalizedAccents.get('o').add(keyCreator.create(context, "Ö"));
+        capitalizedAccents.get('o').add(keyCreator.create(context, "Ő"));
+    }
+
+    private void initU(Context context) {
+        accents.put('u', new ArrayList<TextView>());
+        accents.get('u').add(keyCreator.create(context, "ú"));
+        accents.get('u').add(keyCreator.create(context, "ü"));
+        accents.get('u').add(keyCreator.create(context, "ű"));
+
+        capitalizedAccents.put('u', new ArrayList<TextView>());
+        capitalizedAccents.get('u').add(keyCreator.create(context, "Ú"));
+        capitalizedAccents.get('u').add(keyCreator.create(context, "Ü"));
+        capitalizedAccents.get('u').add(keyCreator.create(context, "Ű"));
     }
 }

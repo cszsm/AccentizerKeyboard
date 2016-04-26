@@ -276,6 +276,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         if (currentKeyboard == qwertzKeyboard) {
             isCapitalized = !isCapitalized;
             qwertzKeyboard.setShifted(isCapitalized);
+            keyboardView.setCapitalized(isCapitalized);
             keyboardView.invalidateAllKeys();
         } else if (currentKeyboard == symbolsKeyboard) {
             keyboardView.setKeyboard(symbolsAltKeyboard);

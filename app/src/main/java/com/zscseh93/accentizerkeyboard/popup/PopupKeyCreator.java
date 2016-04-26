@@ -10,7 +10,7 @@ public class PopupKeyCreator {
 
     public TextView create(Context context, String s) {
         TextView textView = new TextView(context);
-        textView.setTextSize(32);
+        textView.setTextSize(46);
         textView.setPadding(6, 0, 6, 0);
 
         textView.setText(s);

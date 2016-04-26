@@ -4,6 +4,7 @@ import android.content.Context;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.WindowManager;
@@ -24,6 +25,8 @@ public class AccentizerKeyboardView extends KeyboardView {
     private PopupKeyManager popupKeyManager;
 
     private KeyPopup popupWindow;
+    // TODO: kell ez ide? lehetne a popupwindowban is...
+    private AccentBoard accentBoard;
     private LinearLayout linearLayout;
 
     private int popupPosition;
@@ -33,7 +36,7 @@ public class AccentizerKeyboardView extends KeyboardView {
 
         linearLayout = new LinearLayout(context);
 
-        AccentBoard accentBoard = new HunAccentBoard(context);
+        accentBoard = new HunAccentBoard(context);
         popupWindow = new KeyPopup(context, accentBoard);
 
         popupKeyManager = new PopupKeyManager(popupWindow);
@@ -76,5 +79,9 @@ public class AccentizerKeyboardView extends KeyboardView {
                 break;
         }
         return super.onTouchEvent(me);
+    }
+
+    public void setCapitalized(boolean isCapitalized) {
+        accentBoard.setCapitalized(isCapitalized);
     }
 }
