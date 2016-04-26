@@ -1,7 +1,6 @@
 package com.zscseh93.accentizerkeyboard;
 
 import android.util.Log;
-import android.view.animation.Interpolator;
 import android.view.inputmethod.InputConnection;
 
 import com.firebase.client.DataSnapshot;
@@ -42,7 +41,7 @@ public class KeyHandler {
 
     private List<AccentizerRule> rules;
 
-    private boolean isSendingEnabled = false;
+    private boolean isSendingEnabled = true;
 
     public KeyHandler(InputConnection inputConnection, Accentizer accentizer, Firebase firebase) {
         this.inputConnection = inputConnection;
@@ -60,65 +59,18 @@ public class KeyHandler {
         this.inputConnection = inputConnection;
     }
 
-    public void handleDelete(final String currentWord) {
-        Log.d(LOG_TAG, "handleDelete");
-
-        // If there is no characters before the cursor, or the last character is space, the new
-        // word has to be accentized on space
-//        CharSequence previousCharacter = inputConnection.getTextBeforeCursor(1, 0);
-//        if(previousCharacter == null || previousCharacter.equals(" ")) {
-//            state = State.WRITING;
-//            Log.d(STATE_TAG, "WRITING");
-//            return;
-//        }
-
-        switch (state) {
-            case WRITING:
-                Log.d(STATE_TAG, "WRITING");
-                break;
-            case ACCENTIZED:
-                state = State.BAD_SUGGESTION;
-                Log.d(STATE_TAG, "BAD_SUGGESTION");
-
-                Log.d(LOG_TAG, "_" + currentWord + "_");
-                // itt kell menteni a rossz javaslatot
-
-                if (isSendingEnabled) {
-                    saveWord(currentWord);
-                }
-
-                inputConnection.beginBatchEdit();
-                inputConnection.deleteSurroundingText(currentWord.length(), 0);
-                inputConnection.commitText(accentizer.deaccentize(currentWord), 0);
-                inputConnection.endBatchEdit();
-
-                break;
-            case BAD_SUGGESTION:
-                state = State.ACCENTIZING_OFF;
-                Log.d(STATE_TAG, "ACCENTIZING_OFF");
-                break;
-            case ACCENTIZING_OFF:
-
-                String previousCharacter = inputConnection.getTextBeforeCursor(1, 0).toString();
-                if (previousCharacter.matches("\\s+") || previousCharacter.equals("")) {
-                    state = State.WRITING;
-                    Log.d(STATE_TAG, "WRITING");
-                } else {
-                    Log.d(STATE_TAG, "ACCENTIZING_OFF");
-                }
-                break;
-        }
-    }
-
     public void handleSpace(String currentWord) {
         Log.d(LOG_TAG, "handleSpace");
         switch (state) {
+            // TODO: ezt lehetne szebben
             case WRITING:
 
+                // TODO: ezmi?
                 if (currentWord.length() == 0) {
                     break;
                 }
 
+                /* Checking the rules */
                 boolean isAccentizable = true;
                 for (AccentizerRule rule :
                         rules) {
@@ -153,6 +105,9 @@ public class KeyHandler {
             case BAD_SUGGESTION:
                 state = State.WRITING;
                 Log.d(STATE_TAG, "WRITING");
+
+                tryToSaveWord(currentWord);
+
                 break;
             case ACCENTIZING_OFF:
                 state = State.WRITING;
@@ -161,19 +116,90 @@ public class KeyHandler {
         }
     }
 
+    public void handleBackspace(final String currentWord) {
+        Log.d(LOG_TAG, "handleBackspace");
+
+        // If there is no characters before the cursor, or the last character is space, the new
+        // word has to be accentized on space
+//        CharSequence previousCharacter = inputConnection.getTextBeforeCursor(1, 0);
+//        if(previousCharacter == null || previousCharacter.equals(" ")) {
+//            state = State.WRITING;
+//            Log.d(STATE_TAG, "WRITING");
+//            return;
+//        }
+        String previousCharacter = inputConnection.getTextBeforeCursor(1, 0).toString();
+
+        switch (state) {
+            case WRITING:
+                setState(State.WRITING);
+                break;
+            case ACCENTIZED:
+                setState(State.BAD_SUGGESTION);
+
+                Log.d(LOG_TAG, "_" + currentWord + "_");
+                // itt kell menteni a rossz javaslatot
+
+                tryToSaveWord(currentWord);
+
+                inputConnection.beginBatchEdit();
+                inputConnection.deleteSurroundingText(currentWord.length(), 0);
+                inputConnection.commitText(accentizer.deaccentize(currentWord), 0);
+                inputConnection.endBatchEdit();
+
+                break;
+            case BAD_SUGGESTION:
+
+                if (previousCharacter.matches("\\s+") || previousCharacter.equals("")) {
+                    setState(State.WRITING);
+                } else {
+                    setState(State.BAD_SUGGESTION);
+                }
+
+                break;
+            case ACCENTIZING_OFF:
+
+                if (previousCharacter.matches("\\s+") || previousCharacter.equals("")) {
+                    state = State.WRITING;
+                    Log.d(STATE_TAG, "WRITING");
+                } else {
+                    Log.d(STATE_TAG, "ACCENTIZING_OFF");
+                }
+                break;
+        }
+    }
+
+    public void handleCursorChange(String currentWord, boolean isWordChanged) {
+        Log.d(LOG_TAG, "handleCursorChange");
+
+        /**
+         * If there is no characters before the cursor, or the last character is space, the new
+         * word has to be accentized on space
+         */
+        CharSequence previousCharacter = inputConnection.getTextBeforeCursor(1, 0);
+        if (previousCharacter == null || previousCharacter.equals(" ")) {
+            setState(State.WRITING);
+            tryToSaveWord(currentWord);
+            return;
+        }
+
+        if (isWordChanged) {
+            handleCursorChangedToOtherWord(currentWord);
+        } else {
+            handleCursorChangedInWord();
+        }
+    }
+
     public void handleCharacter(char character, boolean isCapitalized) {
         Log.d(LOG_TAG, "handleCharacter");
         switch (state) {
             case WRITING:
-                Log.d(STATE_TAG, "WRITING");
+                setState(State.WRITING);
                 break;
             case ACCENTIZED:
-                state = State.WRITING;
-                Log.d(STATE_TAG, "WRITING");
+                setState(State.WRITING);
                 break;
             case BAD_SUGGESTION:
-                state = State.ACCENTIZING_OFF;
-                Log.d(STATE_TAG, "ACCENTIZING_OFF");
+                setState(State.BAD_SUGGESTION);
                 break;
             case ACCENTIZING_OFF:
                 Log.d(STATE_TAG, "ACCENTIZING_OFF");
@@ -187,47 +213,68 @@ public class KeyHandler {
         inputConnection.commitText(String.valueOf(character), 0);
     }
 
-    public void handleCursorChange(boolean isWordChanged) {
-        Log.d(LOG_TAG, "handleCursorChange");
-
-        // If there is no characters before the cursor, or the last character is space, the new
-        // word has to be accentized on space
-        CharSequence previousCharacter = inputConnection.getTextBeforeCursor(1, 0);
-        if (previousCharacter == null || previousCharacter.equals(" ")) {
-            state = State.WRITING;
-            Log.d(STATE_TAG, "WRITING");
-            return;
-        }
+    private void handleCursorChangedInWord() {
+        Log.d(LOG_TAG, "handleCursorChangedInWord");
 
         switch (state) {
             case WRITING:
-                if (isWordChanged) {
-                    state = State.ACCENTIZING_OFF;
-                    Log.d(STATE_TAG, "ACCENTIZING_OFF");
-                } else {
-                    Log.d(STATE_TAG, "WRITING");
-                }
+                setState(State.WRITING);
                 break;
             case ACCENTIZED:
-                if (isWordChanged) {
-                    state = State.ACCENTIZING_OFF;
-                    Log.d(STATE_TAG, "ACCENTIZING_OFF");
-                } else {
-                    Log.d(STATE_TAG, "ACCENTIZED");
-                }
+                // After accentizing the current word is an empty string
                 break;
             case BAD_SUGGESTION:
-                state = State.ACCENTIZING_OFF;
-                Log.d(STATE_TAG, "ACCENTIZING_OFF");
+                setState(State.BAD_SUGGESTION);
                 break;
             case ACCENTIZING_OFF:
                 Log.d(STATE_TAG, "ACCENTIZING_OFF");
                 break;
         }
+
+    }
+
+    private void handleCursorChangedToOtherWord(String currentWord) {
+        Log.d(LOG_TAG, "handleCursorChangedToOtherWord");
+
+        switch (state) {
+            case WRITING:
+                setState(State.BAD_SUGGESTION);
+                break;
+            case ACCENTIZED:
+                setState(State.BAD_SUGGESTION);
+                break;
+            case BAD_SUGGESTION:
+                setState(State.BAD_SUGGESTION);
+                tryToSaveWord(currentWord);
+                break;
+            case ACCENTIZING_OFF:
+                Log.d(STATE_TAG, "ACCENTIZING_OFF");
+                break;
+        }
+
+    }
+
+    // TODO: értelmes név...
+    private void tryToSaveWord(String currentWord) {
+        Log.d(LOG_TAG, "tryToSaveWord");
+
+        // The word originally suggested by the accentizer
+        String suggestedWord = accentizer.accentize(accentizer.deaccentize(currentWord));
+
+        // If the current word and the suggested word are equal, the current word must not be saved
+        boolean isModified = !currentWord.equals(suggestedWord);
+
+        if (isSendingEnabled && isModified) {
+            saveWord(currentWord);
+        }
+
+        Log.d(LOG_TAG, currentWord);
+        Log.d(LOG_TAG, suggestedWord);
     }
 
     private void saveWord(String currentWord) {
-        firebase.child(currentWord).runTransaction(new Transaction.Handler() {
+        String suggestedWord = accentizer.accentize(accentizer.deaccentize(currentWord));
+        firebase.child(currentWord + " - " + suggestedWord).runTransaction(new Transaction.Handler() {
             @Override
             public Transaction.Result doTransaction(MutableData mutableData) {
                 Log.d(LOG_TAG, "Transaction");
@@ -256,5 +303,11 @@ public class KeyHandler {
         rules.add(new HashtagRule());
         rules.add(new EmailRule());
         rules.add(new URLRule());
+    }
+
+    // TODO: ezt mindenhova
+    private void setState(State newState) {
+        state = newState;
+        Log.d(STATE_TAG, state.name());
     }
 }

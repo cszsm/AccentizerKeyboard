@@ -143,11 +143,13 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
 //        boolean b = cursorHandler.isWordChanged(newSelStart);
         boolean isWordChanged = textInputConnection.updateCursorPosition(newSelStart);
-        currentWord = textInputConnection.getCurrentWord(/*cursorHandler*/);
 
         if (!wasEvent) {
-            keyHandler.handleCursorChange(isWordChanged);
+            keyHandler.handleCursorChange(currentWord, isWordChanged);
         }
+
+        currentWord = textInputConnection.getCurrentWord(/*cursorHandler*/);
+
         wasEvent = false;
 
         Log.d(LOG_TAG, "previous word: " + textInputConnection.getPreviousWord());
@@ -178,7 +180,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         switch (primaryCode) {
             case Keyboard.KEYCODE_DELETE:
                 inputConnection.deleteSurroundingText(1, 0);
-                keyHandler.handleDelete(textInputConnection.getPreviousWord());
+                keyHandler.handleBackspace(textInputConnection.getPreviousWord());
 
                 break;
             case Keyboard.KEYCODE_SHIFT:

@@ -26,6 +26,7 @@ public class TextInputConnection {
     // Returns true if the cursor replaced onto another word
     public boolean updateCursorPosition(int cursorPosition) {
         this.cursorPosition = cursorPosition;
+        Log.d(LOG_TAG, "pos: " + cursorPosition);
         return !(wordStartPosition <= cursorPosition && cursorPosition <= wordEndPosition);
     }
 
@@ -33,7 +34,7 @@ public class TextInputConnection {
     public String getCurrentWord() {
         Log.d(LOG_TAG, "updateCurrentWord");
         int beforeLength = 1;
-        int afterLength = 1;
+//        int afterLength = 1;
 
 
         if (inputConnection.getTextBeforeCursor(beforeLength, 0) == null) {
@@ -45,7 +46,9 @@ public class TextInputConnection {
         String textAfterCursor = getWordAfterCursor();
 
         wordStartPosition = cursorPosition - textBeforeCursor.length();
-        wordEndPosition = cursorPosition + afterLength - 1;
+        wordEndPosition = cursorPosition + textAfterCursor.length();
+
+        Log.d(LOG_TAG, wordStartPosition + " : " + wordEndPosition);
 
         Log.d(LOG_TAG, "current word: _" + textBeforeCursor + textAfterCursor + "_");
         return textBeforeCursor + textAfterCursor;
