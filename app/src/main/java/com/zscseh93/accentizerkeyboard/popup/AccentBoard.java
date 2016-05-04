@@ -8,6 +8,7 @@ import java.util.List;
 /**
  * Created by zscse on 2016. 04. 25..
  */
+// TODO
 public abstract class AccentBoard extends LinearLayout {
 
     private boolean isCapitalized = false;
@@ -29,4 +30,8 @@ public abstract class AccentBoard extends LinearLayout {
     public void setCapitalized(boolean capitalized) {
         isCapitalized = capitalized;
     }
+
+    public abstract void setCurrentLetter(char c);
+
+    public abstract void dismiss();
 }

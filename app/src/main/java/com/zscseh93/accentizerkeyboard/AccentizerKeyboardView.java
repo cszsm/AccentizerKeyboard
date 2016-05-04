@@ -31,6 +31,8 @@ public class AccentizerKeyboardView extends KeyboardView {
 
     private int popupPosition;
 
+    private int screenWidth;
+
     public AccentizerKeyboardView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
@@ -40,6 +42,12 @@ public class AccentizerKeyboardView extends KeyboardView {
         popupWindow = new KeyPopup(context, accentBoard);
 
         popupKeyManager = new PopupKeyManager(popupWindow);
+    }
+
+    @Override
+    public void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        screenWidth = w;
     }
 
     @Override
@@ -63,8 +71,15 @@ public class AccentizerKeyboardView extends KeyboardView {
             case MotionEvent.ACTION_UP:
                 if (popupWindow.isShowing()) {
                     popupWindow.dismiss();
+                    accentBoard.dismiss();
 
-                    Character c = popupKeyManager.handleRelease(me, popupPosition);
+                    // TODO: ez kétszer van
+                    int realPosition = popupPosition;
+                    if (screenWidth - accentBoard.getWidth() < popupPosition) {
+                        realPosition = screenWidth - accentBoard.getWidth();
+                    }
+
+                    Character c = popupKeyManager.handleRelease(me, realPosition);
                     if (c != null) {
                         getOnKeyboardActionListener().onKey(c, new int[]{c, -1, -1, -1, -1, -1,
                                 -1, -1,
@@ -74,7 +89,14 @@ public class AccentizerKeyboardView extends KeyboardView {
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (popupWindow.isShowing()) {
-                    popupKeyManager.handleMotion(me, popupPosition);
+
+                    int realPosition = popupPosition;
+                    if (screenWidth - accentBoard.getWidth() < popupPosition) {
+                        realPosition = screenWidth - accentBoard.getWidth();
+                    }
+
+                    char currentCharacter = popupKeyManager.handleMotion(me, realPosition);
+                    accentBoard.setCurrentLetter(currentCharacter);
                 }
                 break;
         }

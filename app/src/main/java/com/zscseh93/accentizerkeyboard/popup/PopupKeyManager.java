@@ -16,7 +16,7 @@ public class PopupKeyManager {
         this.keyContainer = keyContainer;
     }
 
-    public void handleMotion(MotionEvent event, int popupPosition) {
+    public char handleMotion(MotionEvent event, int popupPosition) {
         float x = event.getX() - popupPosition;
 
         for (PositionedKey key :
@@ -24,8 +24,12 @@ public class PopupKeyManager {
             if (key.getStart() < x && x < key.getEnd()) {
                 // TODO: értelmesen jelezni az aktuális betűt
                 Log.d(LOG_TAG, String.valueOf(key.getKey()));
+                return key.getKey();
             }
         }
+
+        // TODO
+        return '0';
     }
 
     public Character handleRelease(MotionEvent event, int popupPosition) {
@@ -41,13 +45,13 @@ public class PopupKeyManager {
         return null;
     }
 
-    public int getWidth() {
-        int width = 0;
-        for (PositionedKey key :
-                keyContainer.getKeys()) {
-            // TODO
-            width += (key.getEnd() - key.getStart());
-        }
-        return width;
-    }
+//    public int getWidth() {
+//        int width = 0;
+//        for (PositionedKey key :
+//                keyContainer.getKeys()) {
+//            // TODO
+//            width += (key.getEnd() - key.getStart());
+//        }
+//        return width;
+//    }
 }

@@ -55,4 +55,8 @@ public class CandidateView extends RelativeLayout {
 
         button.setText(suggestion);
     }
+
+    public void setBackground(int color) {
+        button.setBackgroundColor(color);
+    }
 }

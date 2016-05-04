@@ -34,7 +34,6 @@ public class TextInputConnection {
     public String getCurrentWord() {
         Log.d(LOG_TAG, "updateCurrentWord");
         int beforeLength = 1;
-//        int afterLength = 1;
 
 
         if (inputConnection.getTextBeforeCursor(beforeLength, 0) == null) {
@@ -56,14 +55,15 @@ public class TextInputConnection {
 
     // Todo: talán updatelni kell az inputconnectiont
     public void replaceCurrentWord(String newWord) {
-        inputConnection.deleteSurroundingText(getWordBeforeCursor().length(), getWordAfterCursor().length());
+        inputConnection.deleteSurroundingText(getWordBeforeCursor().length(), getWordAfterCursor
+                ().length());
         inputConnection.commitText(newWord, 0);
     }
 
     // Used for deaccentizing the last word on backspace
     public String getPreviousWord() {
-        // Starting position is 2 before the cursor therefore the checking of first character is
-        // skipped, so if it is space the reading of input will continue
+        /* Starting position is 2 before the cursor therefore the checking of first character is
+        skipped, so if it is space the reading of input will continue */
         return getWordBeforePosition(2);
     }
 

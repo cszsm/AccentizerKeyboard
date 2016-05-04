@@ -1,6 +1,8 @@
 package com.zscseh93.accentizerkeyboard.popup;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.util.Log;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -13,13 +15,15 @@ import java.util.Map;
  */
 public class HunAccentBoard extends AccentBoard {
 
+    private static final String LOG_TAG = "HunAccentBoard";
+
     private Map<Character, List<TextView>> accents;
     private Map<Character, List<TextView>> capitalizedAccents;
 
     private PopupKeyCreator keyCreator;
 
-    // TODO
     private char state;
+    private TextView previousLetter = null;
 
     public HunAccentBoard(Context context) {
         super(context);
@@ -63,7 +67,29 @@ public class HunAccentBoard extends AccentBoard {
         return accents.keySet().contains(c);
     }
 
-    // TODO legyen más a neve
+    @Override
+    public void setCurrentLetter(char c) {
+        Log.d(LOG_TAG, "setCurrentLetter");
+        for (TextView key :
+                accents.get(state)) {
+            if (key.getText().charAt(0) == c) {
+                if (previousLetter != null) {
+                    previousLetter.setTextColor(Color.BLACK);
+                }
+                key.setTextColor(Color.WHITE);
+                previousLetter = key;
+            }
+        }
+    }
+
+    @Override
+    public void dismiss() {
+        if (previousLetter != null) {
+            previousLetter.setTextColor(Color.BLACK);
+        }
+        previousLetter = null;
+    }
+
     private List<PositionedKey> wrapToKeyList(List<TextView> list) {
         List<PositionedKey> keys = new ArrayList<>();
         for (TextView view :
