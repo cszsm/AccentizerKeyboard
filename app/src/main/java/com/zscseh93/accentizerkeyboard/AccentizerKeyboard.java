@@ -15,7 +15,6 @@ import android.view.inputmethod.InputConnection;
 import com.firebase.client.Firebase;
 
 import java.io.IOException;
-import java.util.List;
 
 import accentizer.Accentizer;
 
@@ -25,29 +24,25 @@ import accentizer.Accentizer;
 public class AccentizerKeyboard extends InputMethodService implements KeyboardView
         .OnKeyboardActionListener {
 
+    private static final String LOG_TAG = "AccentizerKeyboard";
     private AccentizerKeyboardView keyboardView;
-    private Keyboard qwertzKeyboard;
-    private Keyboard qwertzGoKeyboard;
-    private Keyboard symbolsKeyboard;
-    private Keyboard symbolsAltKeyboard;
-
+    //    private Keyboard qwertzKeyboard;
+//    private Keyboard qwertzGoKeyboard;
+//    private Keyboard symbolsKeyboard;
+//    private Keyboard symbolsAltKeyboard;
+    private KeyboardViewManager keyboardViewManager;
     private Accentizer accentizer;
-
-    private boolean isCapitalized = false;
+    //    private boolean isCapitalized = false;
     private boolean isAccentizingOn = true;
-
     private CandidateView candidateView;
     private String currentWord = "";
-
-    private static final String LOG_TAG = "AccentizerKeyboard";
-
     private KeyHandler keyHandler;
     private InputConnection inputConnection;
     private TextInputConnection textInputConnection;
 
     private boolean wasEvent = false;
 
-    private int imeOptions = EditorInfo.IME_ACTION_NONE;
+//    private int imeOptions = EditorInfo.IME_ACTION_NONE;
 
     @Override
     public void onCreate() {
@@ -65,7 +60,6 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             e.printStackTrace();
         }
 
-
         Firebase.setAndroidContext(this);
         Firebase firebase = new Firebase("https://glowing-torch-1852.firebaseio" +
                 ".com/wrong-suggestions");
@@ -77,14 +71,18 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     public View onCreateInputView() {
         Log.d(LOG_TAG, "onCreateInputView");
 
-        keyboardView = (AccentizerKeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
+        keyboardView = (AccentizerKeyboardView) getLayoutInflater().inflate(R.layout.keyboard,
+                null);
 
-        qwertzKeyboard = new Keyboard(this, R.xml.qwertz);
-        qwertzGoKeyboard = new Keyboard(this, R.xml.qwertz_go);
-        symbolsKeyboard = new Keyboard(this, R.xml.symbols);
-        symbolsAltKeyboard = new Keyboard(this, R.xml.symbols_alt);
+//        qwertzKeyboard = new Keyboard(this, R.xml.qwertz);
+//        qwertzGoKeyboard = new Keyboard(this, R.xml.qwertz_go);
+//        symbolsKeyboard = new Keyboard(this, R.xml.symbols);
+//        symbolsAltKeyboard = new Keyboard(this, R.xml.symbols_alt);
+        keyboardViewManager = new KeyboardViewManager(this, keyboardView);
 
-        keyboardView.setKeyboard(qwertzKeyboard);
+//        keyboardView.setKeyboard(qwertzKeyboard);
+//        keyboardView.setKeyboard(keyboardViewManager.updateKeyboardView(KeyboardViewManager
+// .Mode.QWERTZ));
         keyboardView.setOnKeyboardActionListener(this);
         keyboardView.setPreviewEnabled(false);
 
@@ -111,22 +109,29 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
         inputConnection = getCurrentInputConnection();
         textInputConnection.setInputConnection(inputConnection);
-        ExtractedText extractedText = inputConnection.getExtractedText(new ExtractedTextRequest()
-                , 0);
 
-        if (extractedText != null) {
-            textInputConnection.updateCursorPosition(extractedText.selectionStart);
-            currentWord = textInputConnection.getCurrentWord(/*cursorHandler*/);
-            candidateView.setCurrentWord(currentWord);
+        if (inputConnection != null) {
+            ExtractedText extractedText = inputConnection.getExtractedText(new
+                    ExtractedTextRequest(), 0);
+
+            if (extractedText != null) {
+                textInputConnection.updateCursorPosition(extractedText.selectionStart);
+                currentWord = textInputConnection.getCurrentWord(/*cursorHandler*/);
+                candidateView.setCurrentWord(currentWord);
+            }
         }
 
-        Log.d(LOG_TAG, "ime options: " + String.valueOf(info.imeOptions));
-        if (info.imeOptions == EditorInfo.IME_ACTION_GO || info.imeOptions == EditorInfo.IME_ACTION_DONE || info.imeOptions == 234881027) {
-            keyboardView.setKeyboard(qwertzGoKeyboard);
-        } else {
-            keyboardView.setKeyboard(qwertzKeyboard);
-        }
-        imeOptions = info.imeOptions;
+//        Log.d(LOG_TAG, "ime options: " + String.valueOf(info.imeOptions));
+//        if (info.imeOptions == EditorInfo.IME_ACTION_GO || info.imeOptions == EditorInfo
+// .IME_ACTION_DONE || info.imeOptions == 234881027) {
+////            keyboardView.setKeyboard(qwertzGoKeyboard);
+//            keyboardViewManager.updateKeyboardView(KeyboardViewManager.Mode.QWERTZ_GO);
+//        } else {
+////            keyboardView.setKeyboard(qwertzKeyboard);
+//            keyboardViewManager.updateKeyboardView(KeyboardViewManager.Mode.QWERTZ);
+//        }
+//        imeOptions = info.imeOptions;
+        keyboardViewManager.setType(info.imeOptions);
     }
 
     @Override
@@ -188,8 +193,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
                 break;
             case Keyboard.KEYCODE_SHIFT:
-                handleShift();
-
+//                handleShift();
+                keyboardViewManager.handleShift();
                 break;
             case Keyboard.KEYCODE_DONE:
                 inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent
@@ -197,9 +202,11 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                 break;
             case -7:
                 isAccentizingOn = !isAccentizingOn;
+                keyboardView.setAccentizingOn(isAccentizingOn);
                 break;
             case Keyboard.KEYCODE_MODE_CHANGE:
-                handleModeChange();
+//                handleModeChange();
+                keyboardViewManager.changeMode();
                 break;
             case -8:
                 inputConnection.performEditorAction(EditorInfo.IME_ACTION_GO);
@@ -214,7 +221,9 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                 inputConnection.commitText(String.valueOf((char) primaryCode), 0);
                 break;
             default:
-                keyHandler.handleCharacter((char) primaryCode, isCapitalized);
+//                keyHandler.handleCharacter((char) primaryCode, isCapitalized);
+                keyHandler.handleCharacter((char) primaryCode, keyboardViewManager.isCapitalized());
+
 //                Log.d(LOG_TAG, "prim: " + primaryCode + " hossz: " + keyCodes.length);
 //                for (int i :
 //                        keyCodes) {
@@ -223,29 +232,29 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                 break;
         }
 
-        Keyboard tmp = null;
-        if (keyboardView.getKeyboard() == qwertzKeyboard) {
-            tmp = qwertzKeyboard;
-        } else {
-            tmp = qwertzGoKeyboard;
-        }
-
-        if (tmp != null) {
-            List<Keyboard.Key> keys = tmp.getKeys();
-            for (Keyboard.Key key :
-                    keys) {
-                if (key.codes[0] == -7) {
-//                Log.d(LOG_TAG, "-7");
-                    if (isAccentizingOn) {
-//                    Log.d(LOG_TAG, "ON");
-                        key.label = "OFF";
-                    } else {
-//                    Log.d(LOG_TAG, "OFF");
-                        key.label = "ON";
-                    }
-                }
-            }
-        }
+//        Keyboard tmp = null;
+//        if (keyboardView.getKeyboard() == qwertzKeyboard) {
+//            tmp = qwertzKeyboard;
+//        } else {
+//            tmp = qwertzGoKeyboard;
+//        }
+//
+//        if (tmp != null) {
+//            List<Keyboard.Key> keys = tmp.getKeys();
+//            for (Keyboard.Key key :
+//                    keys) {
+//                if (key.codes[0] == -7) {
+////                Log.d(LOG_TAG, "-7");
+//                    if (isAccentizingOn) {
+////                    Log.d(LOG_TAG, "ON");
+//                        key.label = "OFF";
+//                    } else {
+////                    Log.d(LOG_TAG, "OFF");
+//                        key.label = "ON";
+//                    }
+//                }
+//            }
+//        }
 
 
         if (keyHandler.isAccentizing() && isAccentizingOn) {
@@ -281,35 +290,36 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
     }
 
-    private void handleModeChange() {
-        Keyboard currentKeyboard = keyboardView.getKeyboard();
+//    private void handleModeChange() {
+//        Keyboard currentKeyboard = keyboardView.getKeyboard();
+//
+//        if (currentKeyboard == qwertzKeyboard) {
+//            keyboardView.setKeyboard(symbolsKeyboard);
+//        } else {
+//            keyboardView.setKeyboard(qwertzKeyboard);
+//        }
+//    }
 
-        if (currentKeyboard == qwertzKeyboard) {
-            keyboardView.setKeyboard(symbolsKeyboard);
-        } else {
-            keyboardView.setKeyboard(qwertzKeyboard);
-        }
-    }
-
-    private void handleShift() {
-        Keyboard currentKeyboard = keyboardView.getKeyboard();
-
-        // TODO: layoutok szebben
-        if (currentKeyboard == qwertzKeyboard || currentKeyboard == qwertzGoKeyboard) {
-            isCapitalized = !isCapitalized;
-            qwertzKeyboard.setShifted(isCapitalized);
-            qwertzGoKeyboard.setShifted(isCapitalized);
-            keyboardView.setCapitalized(isCapitalized);
-            keyboardView.invalidateAllKeys();
-            Log.d(LOG_TAG, "qwertzKeyboard");
-        } else if (currentKeyboard == symbolsKeyboard) {
-            keyboardView.setKeyboard(symbolsAltKeyboard);
-        } else if (currentKeyboard == symbolsAltKeyboard) {
-            keyboardView.setKeyboard(symbolsKeyboard);
-        } else {
-            Log.d(LOG_TAG, String.valueOf(currentKeyboard));
-        }
-    }
+//    private void handleShift() {
+//        Keyboard currentKeyboard = keyboardView.getKeyboard();
+//
+//
+//        // TODO: layoutok szebben
+//        if (currentKeyboard == qwertzKeyboard || currentKeyboard == qwertzGoKeyboard) {
+//            isCapitalized = !isCapitalized;
+//            qwertzKeyboard.setShifted(isCapitalized);
+//            qwertzGoKeyboard.setShifted(isCapitalized);
+//            keyboardView.setCapitalized(isCapitalized);
+//            keyboardView.invalidateAllKeys();
+//            Log.d(LOG_TAG, "qwertzKeyboard");
+//        } else if (currentKeyboard == symbolsKeyboard) {
+//            keyboardView.setKeyboard(symbolsAltKeyboard);
+//        } else if (currentKeyboard == symbolsAltKeyboard) {
+//            keyboardView.setKeyboard(symbolsKeyboard);
+//        } else {
+//            Log.d(LOG_TAG, String.valueOf(currentKeyboard));
+//        }
+//    }
 
     private void updateInputConnection() {
 

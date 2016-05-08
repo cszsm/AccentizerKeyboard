@@ -15,6 +15,8 @@ import com.zscseh93.accentizerkeyboard.popup.HunAccentBoard;
 import com.zscseh93.accentizerkeyboard.popup.KeyPopup;
 import com.zscseh93.accentizerkeyboard.popup.PopupKeyManager;
 
+import java.util.List;
+
 /**
  * Created by zscse on 2016. 04. 20..
  */
@@ -105,5 +107,19 @@ public class AccentizerKeyboardView extends KeyboardView {
 
     public void setCapitalized(boolean isCapitalized) {
         accentBoard.setCapitalized(isCapitalized);
+    }
+
+    public void setAccentizingOn(boolean isAccentizingOn) {
+        List<Keyboard.Key> keys = getKeyboard().getKeys();
+        for (Keyboard.Key key :
+                keys) {
+            if (key.codes[0] == -7) {
+                if (isAccentizingOn) {
+                    key.label = "ON";
+                } else {
+                    key.label = "OFF";
+                }
+            }
+        }
     }
 }

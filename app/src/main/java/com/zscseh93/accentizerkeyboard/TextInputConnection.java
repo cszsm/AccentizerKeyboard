@@ -23,18 +23,16 @@ public class TextInputConnection {
         this.inputConnection = inputConnection;
     }
 
-    // Returns true if the cursor replaced onto another word
+    /* Returns true if the cursor replaced onto another word */
     public boolean updateCursorPosition(int cursorPosition) {
         this.cursorPosition = cursorPosition;
         Log.d(LOG_TAG, "pos: " + cursorPosition);
         return !(wordStartPosition <= cursorPosition && cursorPosition <= wordEndPosition);
     }
 
-    // Todo: talán frissíteni kell az inputconnectiont előtte és megnézni, hogy null-e
     public String getCurrentWord() {
         Log.d(LOG_TAG, "updateCurrentWord");
         int beforeLength = 1;
-
 
         if (inputConnection.getTextBeforeCursor(beforeLength, 0) == null) {
             Log.d(LOG_TAG, "getTextBeforeCursor is null");
@@ -53,7 +51,6 @@ public class TextInputConnection {
         return textBeforeCursor + textAfterCursor;
     }
 
-    // Todo: talán updatelni kell az inputconnectiont
     public void replaceCurrentWord(String newWord) {
         inputConnection.deleteSurroundingText(getWordBeforeCursor().length(), getWordAfterCursor
                 ().length());
