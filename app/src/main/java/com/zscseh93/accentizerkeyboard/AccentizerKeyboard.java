@@ -1,9 +1,12 @@
 package com.zscseh93.accentizerkeyboard;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
+import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -25,6 +28,10 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         .OnKeyboardActionListener {
 
     private static final String LOG_TAG = "AccentizerKeyboard";
+
+    private static final String PREF_DEBUG = "pref_debug";
+    private static final String PREF_SEND = "pref_send";
+
     private AccentizerKeyboardView keyboardView;
     //    private Keyboard qwertzKeyboard;
 //    private Keyboard qwertzGoKeyboard;
@@ -36,11 +43,13 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     private boolean isAccentizingOn = true;
     private CandidateView candidateView;
     private String currentWord = "";
-    private KeyHandler keyHandler;
+    private AccentizingStateMachine accentizingStateMachine;
     private InputConnection inputConnection;
     private TextInputConnection textInputConnection;
 
     private boolean wasEvent = false;
+
+    private boolean isDebugModeOn;
 
 //    private int imeOptions = EditorInfo.IME_ACTION_NONE;
 
@@ -64,7 +73,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         Firebase firebase = new Firebase("https://glowing-torch-1852.firebaseio" +
                 ".com/wrong-suggestions");
 
-        keyHandler = new KeyHandler(inputConnection, accentizer, firebase);
+        accentizingStateMachine = new AccentizingStateMachine(inputConnection, accentizer,
+                firebase);
     }
 
     @Override
@@ -107,8 +117,9 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         Log.d(LOG_TAG, "onStartInputView");
         super.onStartInputView(info, restarting);
 
-        inputConnection = getCurrentInputConnection();
-        textInputConnection.setInputConnection(inputConnection);
+//        inputConnection = getCurrentInputConnection();
+//        textInputConnection.setInputConnection(inputConnection);
+        updateInputConnection();
 
         if (inputConnection != null) {
             ExtractedText extractedText = inputConnection.getExtractedText(new
@@ -132,6 +143,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 //        }
 //        imeOptions = info.imeOptions;
         keyboardViewManager.setType(info.imeOptions);
+
+        updatePreferences();
     }
 
     @Override
@@ -154,7 +167,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         boolean isWordChanged = textInputConnection.updateCursorPosition(newSelStart);
 
         if (!wasEvent) {
-            keyHandler.handleCursorChange(currentWord, isWordChanged);
+            accentizingStateMachine.handleCursorChange(currentWord, isWordChanged);
         }
 
         currentWord = textInputConnection.getCurrentWord(/*cursorHandler*/);
@@ -189,7 +202,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         switch (primaryCode) {
             case Keyboard.KEYCODE_DELETE:
                 inputConnection.deleteSurroundingText(1, 0);
-                keyHandler.handleBackspace(textInputConnection.getPreviousWord());
+                accentizingStateMachine.handleBackspace(textInputConnection.getPreviousWord());
 
                 break;
             case Keyboard.KEYCODE_SHIFT:
@@ -215,14 +228,15 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 //                String suggestion = candidateView.getSuggestion();
 
                 if (isAccentizingOn) {
-                    keyHandler.handleSpace(textInputConnection.getWordBeforeCursor());
+                    accentizingStateMachine.handleSpace(textInputConnection.getWordBeforeCursor());
                 }
 
                 inputConnection.commitText(String.valueOf((char) primaryCode), 0);
                 break;
             default:
-//                keyHandler.handleCharacter((char) primaryCode, isCapitalized);
-                keyHandler.handleCharacter((char) primaryCode, keyboardViewManager.isCapitalized());
+//                accentizingStateMachine.handleCharacter((char) primaryCode, isCapitalized);
+                accentizingStateMachine.handleCharacter((char) primaryCode, keyboardViewManager
+                        .isCapitalized());
 
 //                Log.d(LOG_TAG, "prim: " + primaryCode + " hossz: " + keyCodes.length);
 //                for (int i :
@@ -257,10 +271,12 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 //        }
 
 
-        if (keyHandler.isAccentizing() && isAccentizingOn) {
-            candidateView.setBackground(Color.rgb(138, 194, 73));
-        } else {
-            candidateView.setBackground(Color.rgb(243, 66, 53));
+        if (isDebugModeOn) {
+            if (accentizingStateMachine.isAccentizing() && isAccentizingOn) {
+                candidateView.setBackground(Color.rgb(138, 194, 73));
+            } else {
+                candidateView.setBackground(Color.rgb(243, 66, 53));
+            }
         }
 //        candidateView.setCurrentWord(currentWord);
     }
@@ -326,8 +342,18 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         inputConnection = getCurrentInputConnection();
         textInputConnection.setInputConnection(inputConnection);
 
-        if (keyHandler != null) {
-            keyHandler.setInputConnection(inputConnection);
+        if (accentizingStateMachine != null) {
+            accentizingStateMachine.setInputConnection(inputConnection);
         }
+    }
+
+    private void updatePreferences() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        isDebugModeOn = sharedPreferences.getBoolean(PREF_DEBUG, false);
+        if (!isDebugModeOn) {
+            candidateView.setBackground(ContextCompat.getColor(this, R.color.colorCandidate));
+        }
+
+        accentizingStateMachine.setSendingEnabled(sharedPreferences.getBoolean(PREF_SEND, false));
     }
 }

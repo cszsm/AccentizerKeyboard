@@ -4,8 +4,8 @@
     <Button
         android:id="@+id/btnCandidate"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="#C5C5C5"
+        android:layout_height="50dp"
+        android:background="@color/colorCandidate"
         android:textColor="#000000"
         android:textAllCaps="false"/>
 </merge>

@@ -2,9 +2,9 @@ package com.zscseh93.accentizerkeyboard;
 
 import android.content.Context;
 import android.inputmethodservice.Keyboard;
-import android.util.Log;
-import android.util.StringBuilderPrinter;
 import android.view.inputmethod.EditorInfo;
+
+import java.util.List;
 
 /**
  * Created by zscse on 2016. 05. 08..

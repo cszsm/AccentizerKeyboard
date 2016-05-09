@@ -21,9 +21,9 @@ import accentizer.Accentizer;
 /**
  * Created by zscse on 2016. 03. 31..
  */
-public class KeyHandler {
+public class AccentizingStateMachine {
 
-    private static final String LOG_TAG = "KeyHandler";
+    private static final String LOG_TAG = "AccentizingStateMachine";
     private static final String STATE_TAG = "KeyHandlerState";
     private static final String whitespace = "\\s+";
     private InputConnection inputConnection;
@@ -34,7 +34,7 @@ public class KeyHandler {
 
     private boolean isSendingEnabled = true;
 
-    public KeyHandler(InputConnection inputConnection, Accentizer accentizer, Firebase firebase) {
+    public AccentizingStateMachine(InputConnection inputConnection, Accentizer accentizer, Firebase firebase) {
         this.inputConnection = inputConnection;
         this.accentizer = accentizer;
 
@@ -68,7 +68,7 @@ public class KeyHandler {
 
                     String suggestion = accentizer.accentize(currentWord);
 
-                    // TODO: Maybe this should be a TextInputConnection method
+                    /* Deleting the last word and writing it back accentized */
                     inputConnection.beginBatchEdit();
                     inputConnection.deleteSurroundingText(suggestion.length(), 0);
                     inputConnection.commitText(suggestion, 0);
@@ -285,5 +285,9 @@ public class KeyHandler {
         WRITING,
         ACCENTIZED,
         BAD_SUGGESTION
+    }
+
+    public void setSendingEnabled(boolean sendingEnabled) {
+        isSendingEnabled = sendingEnabled;
     }
 }
