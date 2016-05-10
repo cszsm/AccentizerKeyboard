@@ -11,7 +11,7 @@
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:shape="rectangle">
             <solid
-                android:color="#F5F5F5"/>
+                android:color="@color/colorButtonTop"/>
             <corners
                 android:radius="4dp"/>
         </shape>
@@ -27,7 +27,7 @@
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:shape="rectangle">
             <solid
-                android:color="@color/colorButtonShadow"/>
+                android:color="@color/colorButtonBottom"/>
             <corners
                 android:radius="4dp"/>
         </shape>

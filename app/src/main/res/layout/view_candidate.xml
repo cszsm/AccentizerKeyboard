@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <merge xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <Button
-        android:id="@+id/btnCandidate"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="@color/colorCandidate"
-        android:textColor="#000000"
-        android:textAllCaps="false"/>
+        android:orientation="horizontal"
+        android:weightSum="3"
+        >
+        <!--style="?android:attr/buttonBarStyle"-->
+        <!--style="?android:attr/buttonBarButtonStyle"-->
+
+        <Button
+            android:id="@+id/btnCandidateOriginal"
+            style="@style/CandidateButton"
+            />
+
+        <Button
+            android:id="@+id/btnCandidateAccentizer"
+            style="@style/CandidateButton"/>
+
+        <Button
+            android:id="@+id/btnCandidateDictionary"
+            style="@style/CandidateButton"
+            />
+    </LinearLayout>
 </merge>

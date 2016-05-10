@@ -1,14 +1,13 @@
 package com.zscseh93.accentizerkeyboard;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
+
+import com.zscseh93.accentizerkeyboard.dictionary.Suggestion;
 
 import java.io.IOException;
 
@@ -19,44 +18,77 @@ import accentizer.Accentizer;
  */
 public class CandidateView extends RelativeLayout {
 
-    private String suggestion;
-    private Accentizer accentizer;
-    private Button button;
+    private String accentizerSuggestion;
+    private String dictionarySuggestion;
+//    private Accentizer accentizer;
+
+    private Suggestor suggestor;
+
+    private Button btnOriginal;
+    private Button btnAccentizer;
+    private Button btnDictionary;
 
     private final String LOG_TAG = "CandidateView";
 
-    public CandidateView(Context context, final TextInputConnection inputConnection, Accentizer accentizer) throws IOException {
+    public CandidateView(Context context, final TextInputConnection inputConnection, Suggestor suggestor) throws IOException {
         super(context);
 
         LayoutInflater.from(context).inflate(R.layout.view_candidate, this, true);
 
-        suggestion = "";
+        accentizerSuggestion = "";
+        dictionarySuggestion = "";
 
-        button = (Button) findViewById(R.id.btnCandidate);
-        button.setTextSize(18);
-        button.setOnClickListener(new OnClickListener() {
+        btnOriginal = (Button) findViewById(R.id.btnCandidateOriginal);
+
+        btnAccentizer = (Button) findViewById(R.id.btnCandidateAccentizer);
+        btnAccentizer.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                inputConnection.replaceCurrentWord(suggestion);
+                inputConnection.replaceCurrentWord(accentizerSuggestion);
             }
         });
 
-        this.accentizer = accentizer;
+        btnDictionary = (Button) findViewById(R.id.btnCandidateDictionary);
+        btnDictionary.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                inputConnection.replaceCurrentWord(dictionarySuggestion);
+            }
+        });
+
+//        this.accentizer = accentizer;
+        this.suggestor = suggestor;
     }
 
     public void setCurrentWord(String word) {
-        String accentizedWord = accentizer.accentize(word);
+//        String accentizedWord = accentizer.accentize(word);
+//
+//        if (word.equals(accentizedWord)) {
+//            accentizerSuggestion = accentizer.deaccentize(accentizedWord);
+//        } else {
+//            accentizerSuggestion = accentizedWord;
+//        }
 
-        if (word.equals(accentizedWord)) {
-            suggestion = accentizer.deaccentize(accentizedWord);
+        accentizerSuggestion = suggestor.suggestByAccentizer(word);
+        dictionarySuggestion = suggestor.suggestByDictionary(word);
+
+        btnAccentizer.setText(accentizerSuggestion);
+        btnDictionary.setText(dictionarySuggestion);
+
+        if (accentizerSuggestion.equals("")) {
+            btnAccentizer.setEnabled(false);
         } else {
-            suggestion = accentizedWord;
+            btnAccentizer.setEnabled(true);
         }
 
-        button.setText(suggestion);
+        if (dictionarySuggestion.equals("")) {
+            btnDictionary.setEnabled(false);
+        } else {
+            btnDictionary.setEnabled(true);
+        }
     }
 
     public void setBackground(int color) {
-        button.setBackgroundColor(color);
+        btnAccentizer.setBackgroundColor(color);
     }
 }

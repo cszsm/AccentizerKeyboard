@@ -9,6 +9,5 @@
         android:defaultValue="false"
         android:key="pref_send"
         android:summary="Sending bad suggestions of accentizer"
-        android:title="Enable sending words"
-        />
+        android:title="Enable sending words"/>
 </PreferenceScreen>

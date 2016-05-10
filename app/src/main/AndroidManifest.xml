@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
+        android:name="com.orm.SugarApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -25,6 +26,12 @@
 
         <activity android:name=".settings.ImeSettingsActivity" android:label="Accentizer Keyboard Settings">
         </activity>
+
+        <meta-data android:name="DATABASE" android:value="suggestions.db" />
+        <meta-data android:name="VERSION" android:value="3" />
+        <meta-data android:name="QUERY_LOG" android:value="true" />
+        <meta-data android:name="DOMAIN_PACKAGE_NAME" android:value="com.zscseh93.accentizerkeyboard.dictionary" />
+
     </application>
 
 </manifest>

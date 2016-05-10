@@ -16,8 +16,12 @@ import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 
 import com.firebase.client.Firebase;
+import com.zscseh93.accentizerkeyboard.dictionary.Suggestion;
+import com.zscseh93.accentizerkeyboard.dictionary.SuggestionDictionary;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 import accentizer.Accentizer;
 
@@ -51,6 +55,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
     private boolean isDebugModeOn;
 
+    private SuggestionDictionary suggestionDictionary;
+
 //    private int imeOptions = EditorInfo.IME_ACTION_NONE;
 
     @Override
@@ -73,8 +79,13 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         Firebase firebase = new Firebase("https://glowing-torch-1852.firebaseio" +
                 ".com/wrong-suggestions");
 
+        FirebaseManager firebaseManager = new FirebaseManager(firebase);
+        suggestionDictionary = new SuggestionDictionary();
+
+        SuggestionManager suggestionManager = new SuggestionManager(firebaseManager, suggestionDictionary);
+
         accentizingStateMachine = new AccentizingStateMachine(inputConnection, accentizer,
-                firebase);
+                suggestionManager);
     }
 
     @Override
@@ -102,8 +113,11 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     @Override
     public View onCreateCandidatesView() {
         Log.d(LOG_TAG, "onCreateCandidatesView");
+
+        Suggestor suggestor = new Suggestor(accentizer, suggestionDictionary);
+
         try {
-            candidateView = new CandidateView(this, textInputConnection, accentizer);
+            candidateView = new CandidateView(this, textInputConnection, suggestor);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -145,6 +159,21 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         keyboardViewManager.setType(info.imeOptions);
 
         updatePreferences();
+
+
+        // innen
+
+        Iterator<Suggestion> db = Suggestion.findAll(Suggestion.class);
+        if (db.hasNext()) {
+            for (Suggestion suggestion; db.hasNext();) {
+                suggestion = db.next();
+                Log.d(LOG_TAG + "_ORM", suggestion.getWord() + " - " + suggestion.getSuggestion() + " - " + suggestion.getCount());
+            }
+        }
+
+        // idáig
+
+//        Suggestion.deleteAll(Suggestion.class);
     }
 
     @Override
@@ -279,6 +308,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             }
         }
 //        candidateView.setCurrentWord(currentWord);
+
     }
 
     @Override
