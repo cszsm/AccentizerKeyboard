@@ -133,9 +133,14 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
 //        inputConnection = getCurrentInputConnection();
 //        textInputConnection.setInputConnection(inputConnection);
-        updateInputConnection();
+        try {
+            updateInputConnection();
+        } catch (InputConnectionException e) {
+            e.printStackTrace();
+            return;
+        }
 
-        if (inputConnection != null) {
+//        if (isConnectionSucceeded) {
             ExtractedText extractedText = inputConnection.getExtractedText(new
                     ExtractedTextRequest(), 0);
 
@@ -144,7 +149,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                 currentWord = textInputConnection.getCurrentWord(/*cursorHandler*/);
                 candidateView.setCurrentWord(currentWord);
             }
-        }
+//        }
 
 //        Log.d(LOG_TAG, "ime options: " + String.valueOf(info.imeOptions));
 //        if (info.imeOptions == EditorInfo.IME_ACTION_GO || info.imeOptions == EditorInfo
@@ -190,7 +195,12 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart,
                 candidatesEnd);
 
-        updateInputConnection();
+        try {
+            updateInputConnection();
+        } catch (InputConnectionException e) {
+            e.printStackTrace();
+            return;
+        }
 
 //        boolean b = cursorHandler.isWordChanged(newSelStart);
         boolean isWordChanged = textInputConnection.updateCursorPosition(newSelStart);
@@ -226,7 +236,12 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         wasEvent = true;
         Log.d(LOG_TAG, "wasEvent: true");
 
-        updateInputConnection();
+        try {
+            updateInputConnection();
+        } catch (InputConnectionException e) {
+            e.printStackTrace();
+            return;
+        }
 
         switch (primaryCode) {
             case Keyboard.KEYCODE_DELETE:
@@ -367,9 +382,12 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 //        }
 //    }
 
-    private void updateInputConnection() {
+    private void updateInputConnection() throws InputConnectionException {
 
         inputConnection = getCurrentInputConnection();
+        if (inputConnection == null) {
+            throw new InputConnectionException("There is no InputConnection bound to the input method.");
+        }
         textInputConnection.setInputConnection(inputConnection);
 
         if (accentizingStateMachine != null) {

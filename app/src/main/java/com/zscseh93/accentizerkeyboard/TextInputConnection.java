@@ -79,7 +79,13 @@ public class TextInputConnection {
         while (textBeforeCursor.length() == beforeLength) {
             if (!textBeforeCursor.substring(0, 1).matches("\\s+")) {
                 beforeLength++;
-                textBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0).toString();
+
+                CharSequence charSequenceBeforeCursor = inputConnection.getTextBeforeCursor(beforeLength, 0);
+                if (charSequenceBeforeCursor == null) {
+                    return "";
+                }
+
+                textBeforeCursor = charSequenceBeforeCursor.toString();
             } else {
                 textBeforeCursor = textBeforeCursor.substring(1);
             }
