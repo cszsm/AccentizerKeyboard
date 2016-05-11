@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@android:color/transparent"
-        android:keyBackground="@drawable/button_background"
+        android:keyBackground="@drawable/key_unpressed"
         android:keyTextColor="#000000"
         android:keyTextSize="22sp"
         android:popupLayout="@layout/popup"

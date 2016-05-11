@@ -4,10 +4,15 @@
     <color name="colorPrimaryDark">#555555</color>
     <color name="colorAccent">#02A8F3</color>
 
-    <color name="colorKeyboard">#D0D0D0</color>
-    <color name="colorButton">#D0D0D0</color>
-    <color name="colorButtonTop">#B0FFFFFF</color>
-    <color name="colorButtonBottom">#B0000000</color>
+    <color name="colorKeyboard">#E0E0E0</color>
+
+    <color name="colorButton">@color/colorKeyboard</color>
+    <color name="colorButtonTop">#FFFFFF</color>
+    <color name="colorButtonBottom">#4A4A4A</color>
+
+    <color name="colorButtonPressed">@color/colorAccent</color>
+    <color name="colorButtonPressedTop">#A3E2FE</color>
+    <color name="colorButtonPressedBottom">#016894</color>
 
     <color name="colorCandidate">#C0C0C0</color>
 </resources>

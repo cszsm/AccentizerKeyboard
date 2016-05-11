@@ -56,6 +56,10 @@ public class AccentizerKeyboardView extends KeyboardView {
     protected boolean onLongPress(Keyboard.Key popupKey) {
         linearLayout.removeAllViews();
 
+        if (popupKey.repeatable) {
+            return false;
+        }
+
         boolean hasAccents = popupWindow.updatePopup((char) popupKey.codes[0]);
         if (hasAccents) {
             popupWindow.showAtLocation(this, Gravity.NO_GRAVITY, 0, 0);

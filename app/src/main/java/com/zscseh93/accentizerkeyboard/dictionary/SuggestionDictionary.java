@@ -2,8 +2,6 @@ package com.zscseh93.accentizerkeyboard.dictionary;
 
 import android.util.Log;
 
-import com.zscseh93.accentizerkeyboard.SuggestionContainer;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +30,8 @@ public class SuggestionDictionary {
                 dictionaryElement.addSuggestion(suggestion);
                 dictionary.put(dictionaryElement.getWord(), dictionaryElement);
             }
-            Log.d(LOG_TAG, suggestion.getWord() + " - " + suggestion.getSuggestion() + " - " + suggestion.getCount());
+            Log.d(LOG_TAG, suggestion.getWord() + " - " + suggestion.getSuggestion() + " - " +
+                    suggestion.getCount());
         }
     }
 
