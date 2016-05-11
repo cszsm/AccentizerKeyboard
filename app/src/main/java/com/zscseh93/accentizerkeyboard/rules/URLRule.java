@@ -6,11 +6,8 @@ package com.zscseh93.accentizerkeyboard.rules;
 public class URLRule implements AccentizerRule {
     @Override
     public boolean isAccentizable(String word) {
-        if (word.startsWith("http://") ||
+        return !(word.startsWith("http://") ||
                 word.startsWith("https://") ||
-                word.startsWith("www.")) {
-            return false;
-        }
-        return true;
+                word.startsWith("www."));
     }
 }

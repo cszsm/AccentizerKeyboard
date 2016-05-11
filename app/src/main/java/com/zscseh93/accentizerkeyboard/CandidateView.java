@@ -18,9 +18,9 @@ import accentizer.Accentizer;
  */
 public class CandidateView extends RelativeLayout {
 
+    private String originalWord;
     private String accentizerSuggestion;
     private String dictionarySuggestion;
-//    private Accentizer accentizer;
 
     private Suggestor suggestor;
 
@@ -35,10 +35,17 @@ public class CandidateView extends RelativeLayout {
 
         LayoutInflater.from(context).inflate(R.layout.view_candidate, this, true);
 
+        originalWord = "";
         accentizerSuggestion = "";
         dictionarySuggestion = "";
 
         btnOriginal = (Button) findViewById(R.id.btnCandidateOriginal);
+        btnOriginal.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                inputConnection.replaceCurrentWord(originalWord + " ");
+            }
+        });
 
         btnAccentizer = (Button) findViewById(R.id.btnCandidateAccentizer);
         btnAccentizer.setOnClickListener(new OnClickListener() {
@@ -56,24 +63,23 @@ public class CandidateView extends RelativeLayout {
             }
         });
 
-//        this.accentizer = accentizer;
         this.suggestor = suggestor;
     }
 
     public void setCurrentWord(String word) {
-//        String accentizedWord = accentizer.accentize(word);
-//
-//        if (word.equals(accentizedWord)) {
-//            accentizerSuggestion = accentizer.deaccentize(accentizedWord);
-//        } else {
-//            accentizerSuggestion = accentizedWord;
-//        }
-
+        originalWord = word;
         accentizerSuggestion = suggestor.suggestByAccentizer(word);
         dictionarySuggestion = suggestor.suggestByDictionary(word);
 
+        btnOriginal.setText(originalWord);
         btnAccentizer.setText(accentizerSuggestion);
         btnDictionary.setText(dictionarySuggestion);
+
+        if (originalWord.equals("")) {
+            btnOriginal.setEnabled(false);
+        } else {
+            btnOriginal.setEnabled(true);
+        }
 
         if (accentizerSuggestion.equals("")) {
             btnAccentizer.setEnabled(false);
@@ -88,7 +94,13 @@ public class CandidateView extends RelativeLayout {
         }
     }
 
-    public void setBackground(int color) {
-        btnAccentizer.setBackgroundColor(color);
+    public void setTextColor(int color) {
+        btnAccentizer.setTextColor(color);
+    }
+
+    public enum ButtonState {
+        YES,
+        NO,
+        OFF
     }
 }

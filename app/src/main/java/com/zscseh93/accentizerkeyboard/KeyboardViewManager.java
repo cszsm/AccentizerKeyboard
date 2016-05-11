@@ -39,25 +39,6 @@ public class KeyboardViewManager {
         keyboardView.setKeyboard(qwertzKeyboard);
     }
 
-//    public void updateKeyboardView(Mode newState) {
-//        mode = newState;
-//
-//        switch (mode) {
-//            case QWERTZ:
-//                keyboardView.setKeyboard(qwertzKeyboard);
-//                break;
-//            case QWERTZ_GO:
-//                keyboardView.setKeyboard(qwertzGoKeyboard);
-//                break;
-//            case SYMBOLS:
-//                keyboardView.setKeyboard(symbolsKeyboard);
-//                break;
-//            case SYMBOLS_ALT:
-//                keyboardView.setKeyboard(altSymbolsKeyboard);
-//                break;
-//        }
-//    }
-
     public void changeMode() {
         if (mode == Mode.QWERTZ) {
             mode = Mode.SYMBOLS;

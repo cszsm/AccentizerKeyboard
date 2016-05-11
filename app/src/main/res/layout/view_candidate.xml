@@ -6,7 +6,7 @@
         android:layout_height="50dp"
         android:orientation="horizontal"
         android:weightSum="3"
-        android:background="@color/colorKeyboard"
+        android:background="@color/colorKeyboardBackground"
         >
         <!--style="?android:attr/buttonBarStyle"-->
         <!--style="?android:attr/buttonBarButtonStyle"-->

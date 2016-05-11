@@ -4,15 +4,13 @@
     <color name="colorPrimaryDark">#555555</color>
     <color name="colorAccent">#02A8F3</color>
 
-    <color name="colorKeyboard">#E0E0E0</color>
+    <color name="colorKeyboardBackground">#C0C0C0</color> <!--E0E0E0-->
 
-    <color name="colorButton">@color/colorKeyboard</color>
-    <color name="colorButtonTop">#FFFFFF</color>
-    <color name="colorButtonBottom">#4A4A4A</color>
+    <color name="colorButton">#E0E0E0</color>
+    <!--<color name="colorButtonTop">#FFFFFF</color>-->
+    <color name="colorButtonBottom">@color/colorPrimaryDark</color> <!--4A4A4A-->
 
-    <color name="colorButtonPressed">@color/colorAccent</color>
-    <color name="colorButtonPressedTop">#A3E2FE</color>
-    <color name="colorButtonPressedBottom">#016894</color>
-
-    <color name="colorCandidate">#C0C0C0</color>
+    <color name="colorButtonPressed">@color/colorPrimaryDark</color>
+    <!--<color name="colorButtonPressedTop">@color/colorPrimaryDark</color> &lt;!&ndash;A3E2FE&ndash;&gt;-->
+    <color name="colorButtonPressedBottom">@color/colorButtonPressed</color> <!--016894-->
 </resources>

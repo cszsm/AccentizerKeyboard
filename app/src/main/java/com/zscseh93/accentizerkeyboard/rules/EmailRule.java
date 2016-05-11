@@ -7,9 +7,6 @@ public class EmailRule implements AccentizerRule {
 
     @Override
     public boolean isAccentizable(String word) {
-        if (word.contains("@")) {
-            return false;
-        }
-        return true;
+        return !word.contains("@");
     }
 }

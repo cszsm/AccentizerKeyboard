@@ -8,7 +8,11 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="CandidateButton">
+    <style name="KeyButton">
+
+    </style>
+
+    <style name="CandidateButton" parent="android:Widget.DeviceDefault.Button.Borderless">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_weight">1</item>

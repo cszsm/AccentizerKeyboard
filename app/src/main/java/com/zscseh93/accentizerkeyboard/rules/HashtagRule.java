@@ -7,9 +7,6 @@ public class HashtagRule implements AccentizerRule {
 
     @Override
     public boolean isAccentizable(String word) {
-        if (word.charAt(0) == '#') {
-            return false;
-        }
-        return true;
+        return word.charAt(0) != '#';
     }
 }

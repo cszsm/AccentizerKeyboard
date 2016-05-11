@@ -29,7 +29,6 @@ public class AccentizingStateMachine {
     private InputConnection inputConnection;
     private Accentizer accentizer;
     private State state;
-//    private Firebase firebase;
     private SuggestionManager suggestionManager;
     private List<AccentizerRule> rules;
 
@@ -41,7 +40,6 @@ public class AccentizingStateMachine {
 
         setState(State.WRITING);
 
-//        this.firebase = firebase;
         this.suggestionManager = suggestionManager;
 
         initializeRules();
@@ -97,8 +95,6 @@ public class AccentizingStateMachine {
                 rules) {
             if (!rule.isAccentizable(currentWord)) {
                 isAccentizable = false;
-//                Log.d(LOG_TAG, "_" + currentWord + "_");
-//                Log.d(LOG_TAG, "!rule");
             }
         }
         return isAccentizable;
@@ -231,41 +227,12 @@ public class AccentizingStateMachine {
         boolean isModified = !currentWord.equals(suggestedWord);
 
         if (isSendingEnabled && isModified) {
-//            saveWord(currentWord);
             suggestionManager.saveSuggestion(deaccentizedWord, currentWord, suggestedWord);
         }
 
         Log.d(LOG_TAG, currentWord);
         Log.d(LOG_TAG, suggestedWord);
     }
-
-    // TODO: firebase manager osztályba
-//    private void saveWord(String currentWord) {
-//        String suggestedWord = accentizer.accentize(accentizer.deaccentize(currentWord));
-//        firebase.child(currentWord + " - " + suggestedWord).runTransaction(new Transaction
-//                .Handler() {
-//            @Override
-//            public Transaction.Result doTransaction(MutableData mutableData) {
-//                Log.d(LOG_TAG, "Transaction");
-//                if (mutableData.getValue() == null) {
-//                    mutableData.setValue(1);
-//                } else {
-//                    mutableData.setValue((Long) mutableData.getValue() + 1);
-//                }
-//
-//                return Transaction.success(mutableData);
-//            }
-//
-//            @Override
-//            public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot
-//                    dataSnapshot) {
-//                Log.d(LOG_TAG, "TRANSACTION COMPLETE");
-//                if (firebaseError != null) {
-//                    Log.d(LOG_TAG, firebaseError.getMessage());
-//                }
-//            }
-//        });
-//    }
 
     private void initializeRules() {
         rules = new ArrayList<>();

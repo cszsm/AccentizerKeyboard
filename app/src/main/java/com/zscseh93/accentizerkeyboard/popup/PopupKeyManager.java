@@ -44,14 +44,4 @@ public class PopupKeyManager {
 
         return null;
     }
-
-//    public int getWidth() {
-//        int width = 0;
-//        for (PositionedKey key :
-//                keyContainer.getKeys()) {
-//            // TODO
-//            width += (key.getEnd() - key.getStart());
-//        }
-//        return width;
-//    }
 }

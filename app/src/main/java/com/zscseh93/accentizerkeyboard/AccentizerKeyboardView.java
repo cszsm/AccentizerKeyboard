@@ -1,6 +1,9 @@
 package com.zscseh93.accentizerkeyboard;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.util.AttributeSet;
@@ -29,21 +32,23 @@ public class AccentizerKeyboardView extends KeyboardView {
     private KeyPopup popupWindow;
     // TODO: kell ez ide? lehetne a popupwindowban is...
     private AccentBoard accentBoard;
-    private LinearLayout linearLayout;
 
     private int popupPosition;
 
     private int screenWidth;
 
+    private Paint paint;
+
     public AccentizerKeyboardView(Context context, AttributeSet attrs) {
         super(context, attrs);
-
-        linearLayout = new LinearLayout(context);
 
         accentBoard = new HunAccentBoard(context);
         popupWindow = new KeyPopup(context, accentBoard);
 
         popupKeyManager = new PopupKeyManager(popupWindow);
+
+        paint = new Paint();
+        paint.setColor(Color.GREEN);
     }
 
     @Override
@@ -54,8 +59,6 @@ public class AccentizerKeyboardView extends KeyboardView {
 
     @Override
     protected boolean onLongPress(Keyboard.Key popupKey) {
-        linearLayout.removeAllViews();
-
         if (popupKey.repeatable) {
             return false;
         }
