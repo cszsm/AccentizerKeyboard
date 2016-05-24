@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.util.AttributeSet;
@@ -44,6 +45,7 @@ public class AccentizerKeyboardView extends KeyboardView {
 
         accentBoard = new HunAccentBoard(context);
         popupWindow = new KeyPopup(context, accentBoard);
+        popupWindow.setBackgroundDrawable(getResources().getDrawable(R.drawable.popup_background));
 
         popupKeyManager = new PopupKeyManager(popupWindow);
 

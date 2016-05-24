@@ -24,8 +24,10 @@ public class SuggestionManager {
             firebaseManager.saveSuggestion(userSuggestion, accentizerSuggestion);
         }
 
-        if (!word.equals(userSuggestion)) {
-            suggestionDictionary.saveSuggestion(word, userSuggestion);
+        String lowerCaseWord = word.toLowerCase();
+        String lowerCaseUserSuggestion = userSuggestion.toLowerCase();
+        if (!lowerCaseWord.equals(lowerCaseUserSuggestion)) {
+            suggestionDictionary.saveSuggestion(lowerCaseWord, lowerCaseUserSuggestion);
         }
     }
 }

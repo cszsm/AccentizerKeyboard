@@ -6,7 +6,7 @@ import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.preference.PreferenceManager;
-import android.support.v4.content.ContextCompat;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -16,17 +16,12 @@ import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 
 import com.firebase.client.Firebase;
-import com.zscseh93.accentizerkeyboard.dictionary.Suggestion;
 import com.zscseh93.accentizerkeyboard.dictionary.SuggestionDictionary;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import accentizer.Accentizer;
 
-/**
- * Created by zscse on 2016. 03. 16..
- */
 public class AccentizerKeyboard extends InputMethodService implements KeyboardView
         .OnKeyboardActionListener {
 
@@ -43,7 +38,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     private String currentWord = "";
     private AccentizingStateMachine accentizingStateMachine;
     private InputConnection inputConnection;
-    private TextInputConnection textInputConnection;
+    private WordInputConnection mWordInputConnection;
 
     private boolean wasEvent = false;
 
@@ -51,13 +46,15 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
     private SuggestionDictionary suggestionDictionary;
 
+    private boolean isPassword = false;
+
     @Override
     public void onCreate() {
         Log.d(LOG_TAG, "onCreate");
         super.onCreate();
 
         inputConnection = getCurrentInputConnection();
-        textInputConnection = new TextInputConnection(inputConnection);
+        mWordInputConnection = new WordInputConnection(inputConnection);
 
         AccentizerCreator accentizerCreator;
         try {
@@ -103,12 +100,12 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         Suggestor suggestor = new Suggestor(accentizer, suggestionDictionary);
 
         try {
-            candidateView = new CandidateView(this, textInputConnection, suggestor);
+            candidateView = new CandidateView(this, mWordInputConnection, suggestor);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        setCandidatesViewShown(true);
+//        setCandidatesViewShown(true);
         return candidateView;
     }
 
@@ -116,6 +113,14 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
     public void onStartInputView(EditorInfo info, boolean restarting) {
         Log.d(LOG_TAG, "onStartInputView");
         super.onStartInputView(info, restarting);
+
+        if ((info.inputType & InputType.TYPE_TEXT_VARIATION_PASSWORD) == InputType.TYPE_TEXT_VARIATION_PASSWORD) {
+            isPassword = true;
+            return;
+        }
+        isPassword = false;
+
+        setCandidatesViewShown(true);
 
         try {
             updateInputConnection();
@@ -128,8 +133,8 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
                 ExtractedTextRequest(), 0);
 
         if (extractedText != null) {
-            textInputConnection.updateCursorPosition(extractedText.selectionStart);
-            currentWord = textInputConnection.getCurrentWord(/*cursorHandler*/);
+            mWordInputConnection.updateCursorPosition(extractedText.selectionStart);
+            currentWord = mWordInputConnection.getCurrentWord(/*cursorHandler*/);
             candidateView.setCurrentWord(currentWord);
         }
         keyboardViewManager.setType(info.imeOptions);
@@ -139,14 +144,14 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
 
         // innen
 
-        Iterator<Suggestion> db = Suggestion.findAll(Suggestion.class);
-        if (db.hasNext()) {
-            for (Suggestion suggestion; db.hasNext(); ) {
-                suggestion = db.next();
-                Log.d(LOG_TAG + "_ORM", suggestion.getWord() + " - " + suggestion.getSuggestion()
-                        + " - " + suggestion.getCount());
-            }
-        }
+//        Iterator<Suggestion> db = Suggestion.findAll(Suggestion.class);
+//        if (db.hasNext()) {
+//            for (Suggestion suggestion; db.hasNext(); ) {
+//                suggestion = db.next();
+//                Log.d(LOG_TAG + "_ORM", suggestion.getWord() + " - " + suggestion.getSuggestion()
+//                        + " - " + suggestion.getCount());
+//            }
+//        }
 
         // idáig
 
@@ -174,18 +179,18 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             return;
         }
 
-        boolean isWordChanged = textInputConnection.updateCursorPosition(newSelStart);
+        boolean isWordChanged = mWordInputConnection.updateCursorPosition(newSelStart);
 
         if (!wasEvent) {
             accentizingStateMachine.handleCursorChange(currentWord, isWordChanged);
         }
 
-        currentWord = textInputConnection.getCurrentWord();
+        currentWord = mWordInputConnection.getCurrentWord();
 
         wasEvent = false;
 
-        Log.d(LOG_TAG, "previous word: " + textInputConnection.getPreviousWord());
-        Log.d(LOG_TAG, "word before cursor: " + textInputConnection.getWordBeforeCursor());
+        Log.d(LOG_TAG, "previous word: " + mWordInputConnection.getPreviousWord());
+        Log.d(LOG_TAG, "word before cursor: " + mWordInputConnection.getWordBeforeCursor());
 
         if (candidateView != null) {
             candidateView.setCurrentWord(currentWord);
@@ -217,7 +222,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
         switch (primaryCode) {
             case Keyboard.KEYCODE_DELETE:
                 inputConnection.deleteSurroundingText(1, 0);
-                accentizingStateMachine.handleBackspace(textInputConnection.getPreviousWord());
+                accentizingStateMachine.handleBackspace(mWordInputConnection.getPreviousWord());
                 break;
             case Keyboard.KEYCODE_SHIFT:
                 keyboardViewManager.handleShift();
@@ -238,7 +243,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             case ' ':
             case '\n':
                 if (isAccentizingOn) {
-                    accentizingStateMachine.handleSpace(textInputConnection.getWordBeforeCursor());
+                    accentizingStateMachine.handleSpace(mWordInputConnection.getWordBeforeCursor());
                 }
                 inputConnection.commitText(String.valueOf((char) primaryCode), 0);
                 break;
@@ -289,7 +294,7 @@ public class AccentizerKeyboard extends InputMethodService implements KeyboardVi
             throw new InputConnectionException("There is no InputConnection bound to the input " +
                     "method.");
         }
-        textInputConnection.setInputConnection(inputConnection);
+        mWordInputConnection.setInputConnection(inputConnection);
 
         if (accentizingStateMachine != null) {
             accentizingStateMachine.setInputConnection(inputConnection);

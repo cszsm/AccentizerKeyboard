@@ -2,55 +2,37 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--<item-->
-        <!--android:bottom="7dp"-->
+        <!--android:bottom="@dimen/key_padding"-->
         <!--android:left="@dimen/key_padding"-->
         <!--android:right="@dimen/key_padding"-->
-        <!--android:top="@dimen/key_padding">-->
+        <!--android:top="7dp">-->
 
         <!--<shape-->
             <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
             <!--android:shape="rectangle">-->
             <!--<solid-->
-                <!--android:color="@color/colorButtonBottom"/>-->
+                <!--android:color="@color/colorButtonPressedBottom"/>-->
             <!--<corners-->
-                <!--android:radius="4dp"-->
                 <!--android:bottomLeftRadius="0dp"-->
+                <!--android:radius="4dp"-->
                 <!--android:topRightRadius="0dp"/>-->
         <!--</shape>-->
     <!--</item>-->
 
     <item
-        android:bottom="@dimen/key_padding"
+        android:bottom="3dp"
         android:left="@dimen/key_padding"
         android:right="@dimen/key_padding"
-        android:top="7dp">
+        android:top="9dp">
 
         <shape
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:shape="rectangle">
             <solid
-                android:color="@color/colorButtonPressedBottom"/>
+                android:color="@color/colorButton"/>
             <corners
-                android:radius="4dp"
                 android:bottomLeftRadius="0dp"
-                android:topRightRadius="0dp"/>
-        </shape>
-    </item>
-
-    <item
-        android:bottom="6dp"
-        android:left="@dimen/key_padding"
-        android:right="@dimen/key_padding"
-        android:top="6dp">
-
-        <shape
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            android:shape="rectangle">
-            <solid
-                android:color="@color/colorButtonPressed"/>
-            <corners
                 android:radius="4dp"
-                android:bottomLeftRadius="0dp"
                 android:topRightRadius="0dp"/>
         </shape>
     </item>

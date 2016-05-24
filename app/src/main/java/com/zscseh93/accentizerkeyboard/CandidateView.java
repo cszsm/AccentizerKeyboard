@@ -1,17 +1,12 @@
 package com.zscseh93.accentizerkeyboard;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
-import com.zscseh93.accentizerkeyboard.dictionary.Suggestion;
-
 import java.io.IOException;
-
-import accentizer.Accentizer;
 
 /**
  * Created by zscse on 2016. 03. 17..
@@ -30,7 +25,7 @@ public class CandidateView extends RelativeLayout {
 
     private final String LOG_TAG = "CandidateView";
 
-    public CandidateView(Context context, final TextInputConnection inputConnection, Suggestor suggestor) throws IOException {
+    public CandidateView(Context context, final WordInputConnection inputConnection, Suggestor suggestor) throws IOException {
         super(context);
 
         LayoutInflater.from(context).inflate(R.layout.view_candidate, this, true);

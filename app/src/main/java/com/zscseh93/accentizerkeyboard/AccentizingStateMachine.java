@@ -3,11 +3,6 @@ package com.zscseh93.accentizerkeyboard;
 import android.util.Log;
 import android.view.inputmethod.InputConnection;
 
-import com.firebase.client.DataSnapshot;
-import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.MutableData;
-import com.firebase.client.Transaction;
 import com.zscseh93.accentizerkeyboard.rules.AccentizerRule;
 import com.zscseh93.accentizerkeyboard.rules.EmailRule;
 import com.zscseh93.accentizerkeyboard.rules.HashtagRule;
@@ -34,7 +29,8 @@ public class AccentizingStateMachine {
 
     private boolean isSendingEnabled = true;
 
-    public AccentizingStateMachine(InputConnection inputConnection, Accentizer accentizer, SuggestionManager suggestionManager) {
+    public AccentizingStateMachine(InputConnection inputConnection, Accentizer accentizer,
+                                   SuggestionManager suggestionManager) {
         this.inputConnection = inputConnection;
         this.accentizer = accentizer;
 
@@ -75,6 +71,8 @@ public class AccentizingStateMachine {
                     inputConnection.endBatchEdit();
                 } else {
                     setState(State.WRITING);
+
+                    tryToSaveWord(currentWord);
                 }
 
                 break;
@@ -254,13 +252,13 @@ public class AccentizingStateMachine {
         return false;
     }
 
+    public void setSendingEnabled(boolean sendingEnabled) {
+        isSendingEnabled = sendingEnabled;
+    }
+
     private enum State {
         WRITING,
         ACCENTIZED,
         BAD_SUGGESTION
-    }
-
-    public void setSendingEnabled(boolean sendingEnabled) {
-        isSendingEnabled = sendingEnabled;
     }
 }

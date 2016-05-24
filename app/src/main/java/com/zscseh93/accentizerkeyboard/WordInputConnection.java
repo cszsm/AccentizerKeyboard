@@ -6,16 +6,16 @@ import android.view.inputmethod.InputConnection;
 /**
  * Created by zscse on 2016. 04. 13..
  */
-public class TextInputConnection {
+public class WordInputConnection {
     private InputConnection inputConnection;
 
     private int cursorPosition;
     private int wordStartPosition;
     private int wordEndPosition;
 
-    private final String LOG_TAG = "TextInputConnection";
+    private final String LOG_TAG = "WordInputConnection";
 
-    public TextInputConnection(InputConnection inputConnection) {
+    public WordInputConnection(InputConnection inputConnection) {
         this.inputConnection = inputConnection;
     }
 

@@ -2,6 +2,8 @@ package com.zscseh93.accentizerkeyboard.dictionary;
 
 import android.util.Log;
 
+import com.zscseh93.accentizerkeyboard.Capitalizer;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,7 @@ public class SuggestionDictionary {
     private static final String LOG_TAG = "SuggestionDictionary";
 
     private Map<String, DictionaryElement> dictionary;
+    private Capitalizer capitalizer;
 
     public SuggestionDictionary() {
         dictionary = new HashMap<>();
@@ -33,15 +36,19 @@ public class SuggestionDictionary {
             Log.d(LOG_TAG, suggestion.getWord() + " - " + suggestion.getSuggestion() + " - " +
                     suggestion.getCount());
         }
+
+        capitalizer = new Capitalizer();
     }
 
     public String getMostFrequentSuggestion(String word) {
-        DictionaryElement element = dictionary.get(word);
+        DictionaryElement element = dictionary.get(word.toLowerCase());
         if (element == null) {
             return "";
         }
 
-        return element.getMostFrequentSuggestion();
+        String suggestion = element.getMostFrequentSuggestion();
+
+        return capitalizer.capitalize(suggestion, word);
     }
 
     public void saveSuggestion(String word, String suggestion) {

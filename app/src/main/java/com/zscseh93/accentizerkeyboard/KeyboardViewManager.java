@@ -49,12 +49,13 @@ public class KeyboardViewManager {
         }
     }
 
-    public void setType(int imeOptions) {
+    public void setType(int inputType) {
 
-        switch (imeOptions) {
+        switch (inputType) {
             case EditorInfo.IME_ACTION_GO:
             case EditorInfo.IME_ACTION_DONE:
             case 234881027:
+            case 301989890:
                 type = Type.GO;
                 keyboardView.setKeyboard(qwertzGoKeyboard);
                 break;

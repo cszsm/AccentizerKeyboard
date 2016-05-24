@@ -10,6 +10,7 @@
     android:keyPreviewLayout="@layout/preview"
     android:keyTextColor="#000000"
     android:shadowRadius="0"
-    android:popupLayout="@layout/popup">
+    android:popupLayout="@layout/popup"
+    android:fadingEdgeLength="3dp">
 
 </com.zscseh93.accentizerkeyboard.AccentizerKeyboardView>

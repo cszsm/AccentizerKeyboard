@@ -3,11 +3,12 @@
     <CheckBoxPreference
         android:defaultValue="false"
         android:key="pref_debug"
-        android:summary="Displaying the state of accentizer"
-        android:title="Enable debug mode"/>
+        android:title="Debug mode"/>
     <CheckBoxPreference
         android:defaultValue="false"
         android:key="pref_send"
-        android:summary="Sending bad suggestions of accentizer"
         android:title="Enable sending words"/>
+    <Preference
+        android:key="pref_clear"
+        android:title="Clear dictionary"/>
 </PreferenceScreen>
